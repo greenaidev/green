@@ -1,7 +1,6 @@
-// app/layout.tsx
+// layout.tsx
 
 import "./globals.css";
-import WalletConnect from "../WalletConnect";
 
 export const metadata = {
   title: "Phantom Wallet Integration",
@@ -15,9 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

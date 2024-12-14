@@ -21,7 +21,7 @@ const WalletConnect = ({ onSessionChange }: { onSessionChange: (valid: boolean) 
   const MESSAGE_TO_SIGN = "Please sign this message to verify your identity.";
 
   const checkIfWalletIsConnected = async () => {
-    const solana = (window as any).solana as Solana | undefined; // Type-cast properly
+    const solana = (window as unknown as { solana?: Solana }).solana;
     if (solana?.isPhantom) {
       try {
         const response = await solana.connect({ onlyIfTrusted: true });
@@ -43,7 +43,7 @@ const WalletConnect = ({ onSessionChange }: { onSessionChange: (valid: boolean) 
   };
 
   const connectWallet = async () => {
-    const solana = (window as any).solana as Solana | undefined; // Type-cast properly
+    const solana = (window as unknown as { solana?: Solana }).solana;
     if (solana) {
       try {
         const response = await solana.connect();
