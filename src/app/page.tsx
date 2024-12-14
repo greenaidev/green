@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import "./globals.css";
-import WalletConnect from "./components/WalletConnect"; // Adjusted import path
+import WalletConnect from "./WalletConnect"; // Adjusted import path
 import Modal from "./components/Modal"; // Adjusted import path
 
 export default function Home() {
