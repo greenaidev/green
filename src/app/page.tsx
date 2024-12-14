@@ -1,11 +1,11 @@
-// page.tsx
+// app/page.tsx
 
 "use client";
 
 import { useState } from "react";
 import "./globals.css";
-import WalletConnect from "../WalletConnect";
-import Modal from "../components/Modal";
+import WalletConnect from "./components/WalletConnect"; // Adjusted import path
+import Modal from "./components/Modal"; // Adjusted import path
 
 export default function Home() {
   const [isSessionValid, setIsSessionValid] = useState(false);
