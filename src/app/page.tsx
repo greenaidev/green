@@ -1,95 +1,57 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+// app/page.tsx
+
+"use client";
+
+import { useState } from "react";
+import "./globals.css";
+import WalletConnect from "./WalletConnect";
+import Modal from "./components/Modal";
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [isSessionValid, setIsSessionValid] = useState(false);
+  const [modalMessage, setModalMessage] = useState<string | null>(null);
+  const [modalType, setModalType] = useState<"success" | "error" | "info">("info");
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
+  const showModal = (message: string, type: "success" | "error" | "info") => {
+    setModalMessage(message);
+    setModalType(type);
+  };
+
+  return (
+    <div>
+      <header className="app-header">
+        <h1>Phantom Wallet App</h1>
+        <WalletConnect
+          onSessionChange={(valid) => {
+            setIsSessionValid(valid);
+            showModal(
+              valid ? "You are connected!" : "You are disconnected!",
+              valid ? "success" : "info"
+            );
+          }}
+        />
+      </header>
+      <main>
+        {isSessionValid ? (
+          <div className="private-content">
+            <h1>Ok, you're in.</h1>
+            <p>This is your private content, accessible only to connected users.</p>
+          </div>
+        ) : (
+          <div className="public-content">
+            <h1>Welcome to Phantom Wallet Integration</h1>
+            <p>Click "Connect Wallet" to get started.</p>
+          </div>
+        )}
       </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {modalMessage && (
+        <Modal
+          message={modalMessage}
+          type={modalType}
+          duration={5000}
+          onClose={() => setModalMessage(null)}
+        />
+      )}
     </div>
   );
 }
