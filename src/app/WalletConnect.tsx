@@ -9,13 +9,19 @@ import AddressDisplay from "./components/AddressDisplay";
 import LogOutButton from "./components/LogOutButton";
 import { verifySignature } from "./utils/helpers";
 
+type Solana = {
+  isPhantom: boolean;
+  connect: (options?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: PublicKey }>;
+  signMessage: (message: Uint8Array, encoding: string) => Promise<{ signature: Uint8Array; publicKey: Uint8Array }>;
+};
+
 const WalletConnect = ({ onSessionChange }: { onSessionChange: (valid: boolean) => void }) => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   const MESSAGE_TO_SIGN = "Please sign this message to verify your identity.";
 
   const checkIfWalletIsConnected = async () => {
-    const { solana } = window as any;
+    const solana = (window as any).solana as Solana | undefined; // Type-cast properly
     if (solana?.isPhantom) {
       try {
         const response = await solana.connect({ onlyIfTrusted: true });
@@ -37,7 +43,7 @@ const WalletConnect = ({ onSessionChange }: { onSessionChange: (valid: boolean) 
   };
 
   const connectWallet = async () => {
-    const { solana } = window as any;
+    const solana = (window as any).solana as Solana | undefined; // Type-cast properly
     if (solana) {
       try {
         const response = await solana.connect();
@@ -82,7 +88,8 @@ const WalletConnect = ({ onSessionChange }: { onSessionChange: (valid: boolean) 
   };
 
   useEffect(() => {
-    checkIfWalletIsConnected();
+    checkIfWalletIsConnected(); // Intentionally leaving out dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

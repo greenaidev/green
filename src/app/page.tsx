@@ -1,11 +1,11 @@
-// app/page.tsx
+// page.tsx
 
 "use client";
 
 import { useState } from "react";
 import "./globals.css";
-import WalletConnect from "./WalletConnect";
-import Modal from "./components/Modal";
+import WalletConnect from "../WalletConnect";
+import Modal from "../components/Modal";
 
 export default function Home() {
   const [isSessionValid, setIsSessionValid] = useState(false);
@@ -34,13 +34,13 @@ export default function Home() {
       <main>
         {isSessionValid ? (
           <div className="private-content">
-            <h1>Ok, you're in.</h1>
+            <h1>Ok, you&apos;re in.</h1>
             <p>This is your private content, accessible only to connected users.</p>
           </div>
         ) : (
           <div className="public-content">
             <h1>Welcome to Phantom Wallet Integration</h1>
-            <p>Click "Connect Wallet" to get started.</p>
+            <p>Click &quot;Connect Wallet&quot; to get started.</p>
           </div>
         )}
       </main>
