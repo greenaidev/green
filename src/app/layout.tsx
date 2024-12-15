@@ -1,20 +1,19 @@
-// layout.tsx
-
+// src/app/layout.tsx
 import "./globals.css";
+import Header from "./components/Header";
 
 export const metadata = {
-  title: "Phantom Wallet Integration",
-  description: "Connect your Phantom Wallet with ease!",
+  title: "Web3 App",
+  description: "A decentralized web application",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Header />
+        {children}
+      </body>
     </html>
   );
 }
