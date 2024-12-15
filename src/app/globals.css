@@ -182,3 +182,118 @@ button:hover {
     max-width: 90%;
   }
 }
+
+/* Add these styles to your existing globals.css */
+
+/* Grid Container */
+.dex-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns */
+  gap: 20px; /* Gap between grid items */
+  margin: 2rem auto;
+  max-width: 900px; /* Centered grid with max width */
+}
+
+/* Grid Box */
+.dex-box {
+  width: 100%; /* Expand horizontally */
+  height: 140px;
+  background-color: var(--bg-color-light);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  display: flex;
+  flex-direction: column; /* Align content vertically */
+  align-items: center; /* Center horizontally */
+  justify-content: center; /* Center vertically */
+  color: #fff; /* White text */
+  transition: all var(--transition-duration);
+}
+
+.dex-box:hover {
+  background-color: var(--bg-hover-opacity);
+  border-color: var(--border-color-hover);
+}
+
+/* Logo Image */
+.dex-logo {
+  max-width: 50%;
+
+}
+
+/* DEX Name */
+.dex-name {
+  margin-top: 20px; /* Vertical gap between logo and name */
+  font-size: 1rem; /* Standard font size */
+  font-weight: bold;
+  text-align: center;
+  color: #fff; /* White text */
+  margin: 0; /* Remove default margin */
+}
+
+
+
+.top-up-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.swap-options {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.swap-option {
+  flex: 1;
+  max-width: 300px;
+  padding: 1.5rem;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius);
+}
+
+.phantom-button,
+.jupiter-button {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 1rem;
+  font-size: var(--font-size-button);
+  cursor: pointer;
+  transition: all var(--transition-duration);
+}
+
+.phantom-button {
+  background-color: #AB9FF2;
+  border-color: #AB9FF2;
+  color: var(--black);
+}
+
+.jupiter-button {
+  background-color: #FF3D00;
+  border-color: #FF3D00;
+  color: var(--white);
+}
+
+.phantom-button:hover,
+.jupiter-button:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+.jupiter-widget-container {
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.info-text {
+  color: var(--font-color);
+  opacity: 0.8;
+  font-size: 0.9em;
+  margin: 1rem 0;
+}

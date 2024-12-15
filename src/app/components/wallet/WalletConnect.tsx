@@ -15,9 +15,11 @@ type Solana = {
   signMessage: (message: Uint8Array, encoding: string) => Promise<{ signature: Uint8Array; publicKey: Uint8Array }>;
 };
 
-const WalletConnect = ({ onSessionChange, showModal }: { onSessionChange: (valid: boolean) => void, showModal: (message: string, type: "success" | "error" | "info") => void }) => {
+const WalletConnect = ({ onSessionChange, showModal }: { 
+  onSessionChange: (valid: boolean, address: string | null) => void, 
+  showModal: (message: string, type: "success" | "error" | "info") => void 
+}) => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
-
   const MESSAGE_TO_SIGN = "Please sign this message to verify your identity.";
 
   const checkIfWalletIsConnected = async () => {
@@ -30,16 +32,16 @@ const WalletConnect = ({ onSessionChange, showModal }: { onSessionChange: (valid
         const sessionValidation = await fetch("/api/session/validate");
         if (sessionValidation.ok) {
           setWalletAddress(publicKey);
-          onSessionChange(true);
+          onSessionChange(true, publicKey);
           showModal("Session is valid", "success");
         } else {
           setWalletAddress(null);
-          onSessionChange(false);
+          onSessionChange(false, null);
           showModal("Connect your wallet to login", "info");
         }
       } catch {
         setWalletAddress(null);
-        onSessionChange(false);
+        onSessionChange(false, null);
         showModal("Connect your wallet to login", "info");
       }
     }
@@ -62,7 +64,7 @@ const WalletConnect = ({ onSessionChange, showModal }: { onSessionChange: (valid
         );
 
         if (isValid) {
-          await fetch("/api/session/set-session", {
+          const sessionResponse = await fetch("/api/session/set-session", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -73,26 +75,36 @@ const WalletConnect = ({ onSessionChange, showModal }: { onSessionChange: (valid
             }),
           });
 
+          const data = await sessionResponse.json();
+
+          if (!sessionResponse.ok) {
+            setWalletAddress(publicKey);
+            onSessionChange(false, publicKey);
+            showModal(data.message, "error");
+            return;
+          }
+
           setWalletAddress(publicKey);
-          onSessionChange(true);
+          onSessionChange(true, publicKey);
           showModal("Wallet connected successfully", "success");
         } else {
-          onSessionChange(false);
+          setWalletAddress(null);
+          onSessionChange(false, null);
           showModal("Signature verification failed", "error");
         }
       } catch (error) {
         if (error instanceof Error) {
           if (error.message.includes('User rejected the request')) {
-            // Suppress specific error messages
             showModal("Connection request was rejected", "info");
           } else {
-            onSessionChange(false);
+            setWalletAddress(null);
+            onSessionChange(false, null);
             showModal("An unexpected error occurred", "error");
-            console.error(error); // Log other errors
+            console.error(error);
           }
         } else {
-          // Handle non-Error objects
-          onSessionChange(false);
+          setWalletAddress(null);
+          onSessionChange(false, null);
           showModal("An unexpected error occurred", "error");
           console.error(error);
         }
@@ -104,29 +116,18 @@ const WalletConnect = ({ onSessionChange, showModal }: { onSessionChange: (valid
     try {
       await fetch("/api/session/logout", { method: "POST" });
       setWalletAddress(null);
-      onSessionChange(false);
+      onSessionChange(false, null);
       showModal("Wallet disconnected", "info");
     } catch {
-      onSessionChange(false);
+      onSessionChange(false, null);
       showModal("Error disconnecting wallet", "error");
     }
   };
 
   useEffect(() => {
-    checkIfWalletIsConnected(); // Intentionally leaving out dependencies
+    checkIfWalletIsConnected();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  if (process.env.NODE_ENV === 'production') {
-    console.error = (message?: unknown, ...optionalParams: unknown[]) => {
-      if (typeof message === 'string' && message.includes('User rejected the request')) {
-        // Suppress specific error messages
-        return;
-      }
-      // Log other errors
-      console.log(message, ...optionalParams);
-    };
-  }
 
   return (
     <div>

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@solana/keys": "^2.0.0",
+    "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.95.8",
     "cookie": "^1.0.2",
     "crypto-js": "^4.2.0",
