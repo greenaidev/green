@@ -51,7 +51,21 @@ body {
   font-weight: bold;
   color: var(--white);
 }
-
+.logo-square {
+  width: 40px;
+  height: 40px;
+  background-color: var(--bg-color-dark);
+  border-width: 1px;
+  border-color: var(--border-color);
+}
+.logo-circle {
+  width: 20px;
+  height: 20px;
+  margin-top: 10px;
+  margin-left: 10px;
+  background-color: var(--font-color);
+  border-radius: 50%;
+}
 /* Content styles */
 main {
   padding: 20px;
@@ -296,4 +310,23 @@ button:hover {
   opacity: 0.8;
   font-size: 0.9em;
   margin: 1rem 0;
+}
+
+/* Private Dashboard Styles */
+.private-dashboard {
+  position: absolute;
+  top: 100px;
+  right: 10px;
+  font-size: 0.8em;
+  text-align: right;
+}
+
+/* User Balance Styles */
+.user-balance {
+  position: absolute;
+  top: 90px;
+  right: 20px;
+  font-size: 0.6em;
+  line-height: 0.8em;
+  text-align: right;
 }

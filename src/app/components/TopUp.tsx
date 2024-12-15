@@ -3,63 +3,64 @@
 import { useState } from 'react';
 
 interface TopUpProps {
+  tokenAddress: string;
   requiredAmount: number;
 }
 
-const TopUp = ({ requiredAmount }: TopUpProps) => {
+const solAddress = 'solana:So11111111111111111111111111111111111111112';
+
+const TopUp = ({ tokenAddress, requiredAmount }: TopUpProps) => {
   const tokenAmount = process.env.NEXT_PUBLIC_TOKEN_AMOUNT || '0';
-  const tokenTicker = process.env.NEXT_PUBLIC_TOKEN_TICKER || '';
-  const tokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS || '';
+  const tokenTicker = process.env.NEXT_PUBLIC_TOKEN_TICKER || 'TOKEN';
+  const tokenAddressCAIP = `solana:${tokenAddress}`;
 
   const dexes = [
-    { 
-        name: 'PumpFun', 
-        url: `https://pump.fun/coin/${tokenAddress}`, 
-        img: '/pumpfun.png' 
+    {
+      name: 'PumpFun',
+      url: `https://pump.fun/coin/${tokenAddress}`,
+      img: '/pumpfun.png',
     },
-    { 
-        name: 'Phantom', 
-        url: `https://www.geckoterminal.com/solana/pools/${tokenAddress}`, 
-        img: '/phantom.png' 
+    {
+      name: 'Phantom',
+      url: `solana:swap?recipient=${encodeURIComponent(tokenAddressCAIP)}&amount=${tokenAmount}`,
+      img: '/phantom.png',
     },
-    { 
-        name: 'GeckoTerminal', 
-        url: `https://www.geckoterminal.com/solana/pools/${tokenAddress}`, 
-        img: '/gecko.png' 
+    {
+      name: 'GeckoTerminal',
+      url: `https://www.geckoterminal.com/solana/pools/${tokenAddress}`,
+      img: '/gecko.png',
     },
-    { 
-      name: 'DEXTools', 
-      url: `https://www.dextools.io/app/solana/pair-explorer/${tokenAddress}`, 
-      img: '/dextools.png' 
+    {
+      name: 'DEXTools',
+      url: `https://www.dextools.io/app/solana/pair-explorer/${tokenAddress}`,
+      img: '/dextools.png',
     },
-    { 
-      name: 'Bullx.io', 
-      url: `https://bullx.io/terminal?chainId=1399811149&address=${tokenAddress}`, 
-      img: '/bullx.png' 
+    {
+      name: 'Bullx.io',
+      url: `https://bullx.io/terminal?chainId=1399811149&address=${tokenAddress}`,
+      img: '/bullx.png',
     },
-    { 
-      name: 'DexScreener', 
-      url: `https://dexscreener.com/solana/${tokenAddress}`, 
-      img: '/dexscreener.png' 
+    {
+      name: 'DexScreener',
+      url: `https://dexscreener.com/solana/${tokenAddress}`,
+      img: '/dexscreener.png',
     },
-    { 
-        name: 'Raydium', 
-        url: `https://raydium.io/swap/?inputMint=sol&outputMint=${tokenAddress}`, 
-        img: '/raydium.png' 
+    {
+      name: 'Raydium',
+      url: `https://raydium.io/swap/?inputMint=sol&outputMint=${tokenAddress}`,
+      img: '/raydium.png',
     },
-    { 
-      name: 'Jupiter', 
-      url: `https://jup.ag/swap/SOL-${tokenAddress}`, 
-      img: '/jupiter.png' 
+    {
+      name: 'Jupiter',
+      url: `https://jup.ag/swap/SOL-${tokenAddress}`,
+      img: '/jupiter.png',
     },
-    { 
-        name: 'BirdEye', 
-        url: `https://birdeye.so/token/${tokenAddress}`, 
-        img: '/birdeye.png' 
-    }
-
+    {
+      name: 'BirdEye',
+      url: `https://birdeye.so/token/${tokenAddress}`,
+      img: '/birdeye.png',
+    },
   ];
-  
 
   const openPopup = (url: string) => {
     window.open(url, '_blank', 'width=420,height=720');
@@ -76,15 +77,17 @@ const TopUp = ({ requiredAmount }: TopUpProps) => {
       </p>
 
       <div className="dex-grid">
-  {dexes.map((dex, index) => (
-    <div key={index} onClick={() => openPopup(dex.url)} className="dex-box">
-      <img src={dex.img} alt={dex.name} className="dex-logo" />
-    </div>
-  ))}
-</div>
-
+        {dexes.map((dex, index) => (
+          <div key={index} onClick={() => openPopup(dex.url)} className="dex-box">
+            <img src={dex.img} alt={dex.name} className="dex-logo" />
+          </div>
+        ))}
+      </div>
+      <p className="refresh-info">
+        Refresh the page or reconnect your wallet to check for balance updates.
+      </p>
     </div>
   );
 };
 
-export default TopUp; 
+export default TopUp;

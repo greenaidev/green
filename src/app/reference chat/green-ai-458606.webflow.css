@@ -1,0 +1,149 @@
+:root {
+  --bg: #090909;
+  --font: #3f0;
+  --border: #ffffff1a;
+  --bg-darker: #111;
+  --border-focus: #fff3;
+  --bg-lighter: #191919;
+  --font-inactive: #555;
+}
+
+.viewport {
+  background-color: var(--bg);
+  color: var(--font);
+  text-align: left;
+  flex-flow: column;
+  width: 100%;
+  height: 100%;
+  font-family: Inconsolata, monospace;
+  display: flex;
+  position: fixed;
+  inset: 0%;
+}
+
+.header {
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 16px;
+  padding-bottom: 16px;
+  padding-right: 5%;
+  display: flex;
+}
+
+.body {
+  flex-flow: column;
+  flex: 1;
+  padding: 16px 5% 0;
+  display: flex;
+}
+
+.footer {
+  height: 100px;
+}
+
+.input {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #ffffff1a #ffffff1a #ffffff1a var(--border);
+  background-color: var(--bg-darker);
+  height: 60px;
+  min-height: 60px;
+  margin-bottom: 0;
+}
+
+.input:active, .input:focus {
+  border-color: var(--border);
+}
+
+.input::placeholder {
+  color: var(--font);
+}
+
+.submit {
+  border-style: solid solid solid none;
+  border-width: 1px;
+  border-color: var(--border);
+  background-color: var(--bg-darker);
+  color: var(--font);
+  text-align: center;
+  width: 60px;
+  height: 60px;
+}
+
+.terminal {
+  padding: 20px 5%;
+  display: flex;
+}
+
+.uid {
+  font-size: 12px;
+}
+
+.connect {
+  border: 1px solid var(--border);
+  background-color: var(--bg);
+  color: var(--font);
+  padding: 6px 12px;
+  font-size: 12px;
+  transition: border .25s ease-in-out;
+}
+
+.connect:hover {
+  border-color: var(--border-focus);
+  background-color: var(--bg-darker);
+}
+
+.link-block {
+  border: 1px solid var(--border);
+  background-color: var(--bg-darker);
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 4px;
+  display: flex;
+  position: absolute;
+  inset: 12px auto auto 5%;
+}
+
+.msg {
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg-darker);
+  padding: 16px;
+}
+
+.msg.u {
+  background-color: var(--bg-lighter);
+}
+
+.msg-footer {
+  border-top: 1px solid var(--border);
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 8px;
+  display: flex;
+}
+
+.msg-btn {
+  color: var(--font);
+  margin-left: 16px;
+  line-height: 14px;
+  text-decoration: none;
+}
+
+.scroll {
+  border: 1px solid var(--border);
+  flex: 1;
+}
+
+.msg-content {
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.green-dot {
+  background-color: var(--font);
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+}

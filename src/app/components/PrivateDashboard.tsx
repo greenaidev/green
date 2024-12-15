@@ -53,11 +53,9 @@ const PrivateDashboard = ({ walletAddress }: PrivateDashboardProps) => {
   }
 
   return (
-    <div className="private-dashboard">
-      <h2>UID: {walletAddress.slice(0, 4)}...{walletAddress.slice(-4)}</h2>
-      <h3>Wallet Balance</h3>
-      <p>$SOL: {solBalance !== null ? solBalance.toFixed(4) : 'Loading...'}</p>
-      <p>${tokenTicker}: {tokenBalance !== null ? tokenBalance.toFixed(4) : 'Loading...'}</p>
+    <div className="user-balance">
+      <p>$SOL: {solBalance !== null ? solBalance.toLocaleString(undefined, { maximumFractionDigits: 4 }) : 'Loading...'}</p>
+      <p>${tokenTicker}: {tokenBalance !== null ? tokenBalance.toLocaleString(undefined, { maximumFractionDigits: 0 }) : 'Loading...'}</p>
     </div>
   );
 };

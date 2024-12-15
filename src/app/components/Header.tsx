@@ -30,7 +30,7 @@ const Header = () => {
   return (
     <>
       <header className="app-header">
-        <h1>Web3 App</h1>
+        <div className="logo-square"><div className="logo-circle"></div></div>
         <WalletConnect 
           onSessionChange={handleSessionChange} 
           showModal={showModal}
