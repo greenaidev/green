@@ -137,7 +137,7 @@ export async function checkTokenBalance(
       return false;
     } catch (error) {
       console.error(`Error checking token balance (attempt ${attempt + 1}):`, error);
-      lastError = error;
+      lastError = error as Error;
       if (attempt === retryCount - 1) {
         console.error('All attempts failed. Last error:', lastError);
         return false;

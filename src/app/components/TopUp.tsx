@@ -1,15 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import Image from 'next/image';
 
 interface TopUpProps {
   tokenAddress: string;
-  requiredAmount: number;
 }
 
-const solAddress = 'solana:So11111111111111111111111111111111111111112';
-
-const TopUp = ({ tokenAddress, requiredAmount }: TopUpProps) => {
+const TopUp = ({ tokenAddress }: TopUpProps) => {
   const tokenAmount = process.env.NEXT_PUBLIC_TOKEN_AMOUNT || '0';
   const tokenTicker = process.env.NEXT_PUBLIC_TOKEN_TICKER || 'TOKEN';
   const tokenAddressCAIP = `solana:${tokenAddress}`;
@@ -79,7 +76,7 @@ const TopUp = ({ tokenAddress, requiredAmount }: TopUpProps) => {
       <div className="dex-grid">
         {dexes.map((dex, index) => (
           <div key={index} onClick={() => openPopup(dex.url)} className="dex-box">
-            <img src={dex.img} alt={dex.name} className="dex-logo" />
+            <Image src={dex.img} alt={dex.name} className="dex-logo" width={50} height={50} />
           </div>
         ))}
       </div>

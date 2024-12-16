@@ -1,7 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
-import fs from 'fs';
-import path from 'path';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -16,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { prompt, history } = req.body;
 
   try {
-    const systemPrompt = fs.readFileSync(path.resolve('./system-prompt.txt'), 'utf-8');
+    const systemPrompt = process.env.SYSTEM_PROMPT || 'Default system prompt';
     console.log('System prompt loaded successfully');
 
     const historyArray = Array.isArray(history) ? history : [];

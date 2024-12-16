@@ -11,7 +11,7 @@ const TerminalFooter = ({ messages = [], setMessages }: TerminalFooterProps) => 
   // Log only once when the component mounts
   useEffect(() => {
     console.log('Received setMessages function:', typeof setMessages);
-  }, []);
+  }, [setMessages]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +19,7 @@ const TerminalFooter = ({ messages = [], setMessages }: TerminalFooterProps) => 
     const newMessage = { role: 'user', content: input };
 
     if (input.startsWith('/')) {
-      handleCommand(input);
+      handleCommand();
     } else {
       // Add the user's message to the state immediately
       setMessages((prevMessages) => [...prevMessages, newMessage]);
@@ -31,7 +31,7 @@ const TerminalFooter = ({ messages = [], setMessages }: TerminalFooterProps) => 
     setInput('');
   };
 
-  const handleCommand = (command: string) => {
+  const handleCommand = () => {
     // Handle commands
   };
 

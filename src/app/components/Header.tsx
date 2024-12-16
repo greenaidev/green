@@ -41,8 +41,7 @@ const Header = () => {
           <PrivateDashboard walletAddress={connectedWallet} />
         ) : shouldShowTopUp ? (
           <TopUp 
-            tokenAddress={process.env.NEXT_PUBLIC_TOKEN_ADDRESS || ''} 
-            requiredAmount={Number(process.env.NEXT_PUBLIC_TOKEN_AMOUNT) || 0}
+            tokenAddress={process.env.NEXT_PUBLIC_TOKEN_ADDRESS || ''}
           />
         ) : (
           <PublicContent />
