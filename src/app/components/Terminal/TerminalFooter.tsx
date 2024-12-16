@@ -7,12 +7,13 @@ interface Message {
 }
 
 interface TerminalFooterProps {
-  messages: Message[];
+  // Remove messages if not needed
+  // messages: Message[];
   sendToOpenAI: (prompt: string) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
-const TerminalFooter = ({ messages, sendToOpenAI, setMessages }: TerminalFooterProps) => {
+const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
   const [input, setInput] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import TerminalBody from './TerminalBody';
 import TerminalFooter from './TerminalFooter';
-import useOpenAI from '../../../hooks/useOpenAI';
+// import useOpenAI from '../../../hooks/useOpenAI'; // Remove or comment out this line if not needed
 
 interface Message {
   role: string;
@@ -19,7 +19,7 @@ const Terminal: React.FC<TerminalProps> = ({ messages, sendToOpenAI, setMessages
   return (
     <div className="viewport">
       <TerminalBody messages={messages} />
-      <TerminalFooter messages={messages} sendToOpenAI={sendToOpenAI} setMessages={setMessages} />
+      <TerminalFooter sendToOpenAI={sendToOpenAI} setMessages={setMessages} />
     </div>
   );
 };
