@@ -1,74 +1,33 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
-interface TerminalFooterProps {
-  messages: { role: string; content: string }[];
-  setMessages: React.Dispatch<React.SetStateAction<{ role: string; content: string }[]>>;
+interface Message {
+  role: string;
+  content: string;
+  tokens?: number;
 }
 
-const TerminalFooter = ({ messages = [], setMessages }: TerminalFooterProps) => {
+interface TerminalFooterProps {
+  messages: Message[];
+  sendToOpenAI: (prompt: string) => Promise<void>;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+}
+
+const TerminalFooter = ({ messages, sendToOpenAI, setMessages }: TerminalFooterProps) => {
   const [input, setInput] = useState('');
 
-  // Log only once when the component mounts
-  useEffect(() => {
-    console.log('Received setMessages function:', typeof setMessages);
-  }, [setMessages]);
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!input.trim()) return;
 
-    const newMessage = { role: 'user', content: input };
-
-    if (input.startsWith('/')) {
-      handleCommand();
-    } else {
-      // Add the user's message to the state immediately
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-
-      console.log('Simulating sendToOpenAI with input:', input);
-      sendToOpenAI(input);
-    }
-
+    setMessages((prev) => [...prev, { role: 'user', content: input }]);
+    await sendToOpenAI(input);
     setInput('');
-  };
-
-  const handleCommand = () => {
-    // Handle commands
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      console.log('Attempting to call setMessages');
       handleSubmit(e as unknown as React.FormEvent);
-    }
-  };
-
-  const sendToOpenAI = async (prompt: string) => {
-    try {
-      const response = await fetch('/api/openai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, history: messages }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error from OpenAI API:', errorText);
-        return;
-      }
-
-      const data = await response.json();
-      const newHistory = [
-        ...messages,
-        { role: 'user', content: prompt },
-        { role: 'assistant', content: data.message },
-      ];
-
-      // Update both localStorage and the state
-      localStorage.setItem('chatHistory', JSON.stringify(newHistory));
-      setMessages(newHistory); // This will trigger re-render in TerminalBody
-    } catch (error) {
-      console.error('Error during OpenAI submission:', error);
     }
   };
 

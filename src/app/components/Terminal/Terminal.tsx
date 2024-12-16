@@ -1,23 +1,25 @@
-import { useEffect, useState } from 'react';
+import React from 'react';
 import TerminalBody from './TerminalBody';
 import TerminalFooter from './TerminalFooter';
+import useOpenAI from '../../../hooks/useOpenAI';
 
-const Terminal = () => {
-  const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
+interface Message {
+  role: string;
+  content: string;
+  tokens?: number;
+}
 
-  useEffect(() => {
-    const storedHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-    console.log('Loaded messages from localStorage:', storedHistory);
-    setMessages(storedHistory);
-  }, []);
+interface TerminalProps {
+  messages: Message[];
+  sendToOpenAI: (prompt: string) => Promise<void>;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+}
 
-  console.log('Passing setMessages function:', typeof setMessages);
-  console.log('Initialized setMessages function:', typeof setMessages);
-
+const Terminal: React.FC<TerminalProps> = ({ messages, sendToOpenAI, setMessages }) => {
   return (
     <div className="viewport">
-      <TerminalBody key={messages.length} messages={messages} />
-      <TerminalFooter messages={messages} setMessages={setMessages} />
+      <TerminalBody messages={messages} />
+      <TerminalFooter messages={messages} sendToOpenAI={sendToOpenAI} setMessages={setMessages} />
     </div>
   );
 };

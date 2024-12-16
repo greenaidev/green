@@ -76,7 +76,15 @@ const TopUp = ({ tokenAddress }: TopUpProps) => {
       <div className="dex-grid">
         {dexes.map((dex, index) => (
           <div key={index} onClick={() => openPopup(dex.url)} className="dex-box">
-            <Image src={dex.img} alt={dex.name} className="dex-logo" width={50} height={50} />
+            <Image
+              src={dex.img}
+              alt={dex.name}
+              className="dex-logo"
+              width={140}
+              height={140}
+              quality={100}
+              sizes="(max-width: 600px) 100px, 140px"
+            />
           </div>
         ))}
       </div>

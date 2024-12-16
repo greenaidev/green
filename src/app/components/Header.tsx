@@ -4,7 +4,6 @@
 import { useState } from "react";
 import WalletConnect from "./wallet/WalletConnect";
 import Modal from "./Modal";
-import PublicContent from "./PublicContent";
 import PrivateDashboard from "./PrivateDashboard";
 import TopUp from "./TopUp";
 
@@ -38,13 +37,13 @@ const Header = () => {
       </header>
       <main>
         {isSessionValid ? (
-          <PrivateDashboard walletAddress={connectedWallet} />
+          <PrivateDashboard />
         ) : shouldShowTopUp ? (
           <TopUp 
             tokenAddress={process.env.NEXT_PUBLIC_TOKEN_ADDRESS || ''}
           />
         ) : (
-          <PublicContent />
+          <div>Please connect your wallet.</div>
         )}
       </main>
       {modalMessage && (

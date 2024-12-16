@@ -7,7 +7,6 @@ const openai = new OpenAI({
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    console.error('Method not allowed');
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
@@ -15,7 +14,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const systemPrompt = process.env.SYSTEM_PROMPT || 'Default system prompt';
-    console.log('System prompt loaded successfully');
 
     const historyArray = Array.isArray(history) ? history : [];
 
@@ -29,11 +27,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     const message = response.choices[0].message?.content || 'No response';
-    console.log('OpenAI response received:', message);
+    const totalTokens = response.usage?.total_tokens || 0;
 
-    res.status(200).json({ message });
+    console.log('Extracted totalTokens:', totalTokens);
+
+    res.status(200).json({ message, totalTokens });
   } catch (error) {
-    console.error('Error during OpenAI request:', error);
+    console.error('Error during OpenAI submission:', error);
     res.status(500).json({ error: 'Failed to fetch response from OpenAI' });
   }
 } 

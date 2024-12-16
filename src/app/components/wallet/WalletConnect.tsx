@@ -3,11 +3,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, Connection } from "@solana/web3.js";
 import ConnectButton from "./ConnectButton";
 import AddressDisplay from "./AddressDisplay";
 import LogOutButton from "./LogOutButton";
 import { verifySignature } from "../../utils/helpers";
+import { TOKEN_PROGRAM_ID, getAccount, getMint } from "@solana/spl-token";
 
 type Solana = {
   isPhantom: boolean;
@@ -16,11 +17,14 @@ type Solana = {
 };
 
 const WalletConnect = ({ onSessionChange, showModal }: { 
-  onSessionChange: (valid: boolean, address: string | null) => void, 
+  onSessionChange: (valid: boolean, address: string | null, tokenBalance: number | null) => void, 
   showModal: (message: string, type: "success" | "error" | "info") => void 
 }) => {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [tokenBalance, setTokenBalance] = useState<number | null>(null);
   const MESSAGE_TO_SIGN = "Please sign this message to verify your identity.";
+  const tokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS || '';
+  const tokenTicker = process.env.NEXT_PUBLIC_TOKEN_TICKER || '';
 
   const checkIfWalletIsConnected = async () => {
     const solana = (window as unknown as { solana?: Solana }).solana;
@@ -32,18 +36,42 @@ const WalletConnect = ({ onSessionChange, showModal }: {
         const sessionValidation = await fetch("/api/session/validate");
         if (sessionValidation.ok) {
           setWalletAddress(publicKey);
-          onSessionChange(true, publicKey);
+          await fetchTokenBalance(publicKey);
+          onSessionChange(true, publicKey, tokenBalance);
           showModal("Session is valid", "success");
         } else {
           setWalletAddress(null);
-          onSessionChange(false, null);
+          onSessionChange(false, null, null);
           showModal("Connect your wallet to login", "info");
         }
       } catch {
         setWalletAddress(null);
-        onSessionChange(false, null);
+        onSessionChange(false, null, null);
         showModal("Connect your wallet to login", "info");
       }
+    }
+  };
+
+  const fetchTokenBalance = async (walletAddress: string) => {
+    try {
+      const connection = new Connection(process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.mainnet-beta.solana.com");
+      const wallet = new PublicKey(walletAddress);
+
+      const tokenAccounts = await connection.getTokenAccountsByOwner(wallet, {
+        programId: TOKEN_PROGRAM_ID,
+      });
+
+      for (const ta of tokenAccounts.value) {
+        const accountData = await getAccount(connection, ta.pubkey);
+        if (accountData.mint.equals(new PublicKey(tokenAddress))) {
+          const mintInfo = await getMint(connection, accountData.mint);
+          const balance = Number(accountData.amount) / Math.pow(10, mintInfo.decimals);
+          setTokenBalance(balance);
+          break;
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching token balance:", error);
     }
   };
 
@@ -79,17 +107,18 @@ const WalletConnect = ({ onSessionChange, showModal }: {
 
           if (!sessionResponse.ok) {
             setWalletAddress(publicKey);
-            onSessionChange(false, publicKey);
+            onSessionChange(false, publicKey, null);
             showModal(data.message, "error");
             return;
           }
 
           setWalletAddress(publicKey);
-          onSessionChange(true, publicKey);
+          await fetchTokenBalance(publicKey);
+          onSessionChange(true, publicKey, tokenBalance);
           showModal("Wallet connected successfully", "success");
         } else {
           setWalletAddress(null);
-          onSessionChange(false, null);
+          onSessionChange(false, null, null);
           showModal("Signature verification failed", "error");
         }
       } catch (error) {
@@ -98,13 +127,13 @@ const WalletConnect = ({ onSessionChange, showModal }: {
             showModal("Connection request was rejected", "info");
           } else {
             setWalletAddress(null);
-            onSessionChange(false, null);
+            onSessionChange(false, null, null);
             showModal("An unexpected error occurred", "error");
             console.error(error);
           }
         } else {
           setWalletAddress(null);
-          onSessionChange(false, null);
+          onSessionChange(false, null, null);
           showModal("An unexpected error occurred", "error");
           console.error(error);
         }
@@ -116,10 +145,10 @@ const WalletConnect = ({ onSessionChange, showModal }: {
     try {
       await fetch("/api/session/logout", { method: "POST" });
       setWalletAddress(null);
-      onSessionChange(false, null);
+      onSessionChange(false, null, null);
       showModal("Wallet disconnected", "info");
     } catch {
-      onSessionChange(false, null);
+      onSessionChange(false, null, null);
       showModal("Error disconnecting wallet", "error");
     }
   };
@@ -133,7 +162,12 @@ const WalletConnect = ({ onSessionChange, showModal }: {
     <div>
       {walletAddress ? (
         <div className="wallet-connected">
-          <AddressDisplay address={walletAddress} />
+          <div className="wallet-info">
+            <AddressDisplay address={walletAddress} />
+            <p className="token-balance">
+              ${tokenTicker}: {tokenBalance !== null ? tokenBalance.toLocaleString(undefined, { maximumFractionDigits: 0 }) : 'Loading...'}
+            </p>
+          </div>
           <LogOutButton onClick={disconnectWallet} />
         </div>
       ) : (
