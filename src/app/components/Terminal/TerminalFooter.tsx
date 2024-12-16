@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface Message {
   role: string;
@@ -7,14 +7,19 @@ interface Message {
 }
 
 interface TerminalFooterProps {
-  // Remove messages if not needed
-  // messages: Message[];
   sendToOpenAI: (prompt: string) => Promise<void>;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }
 
 const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
   const [input, setInput] = useState('');
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +43,7 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
         <div className="input-container">
           <span className="input-prefix">{'>_'}</span>
           <textarea
+            ref={inputRef}
             required
             maxLength={5000}
             className="input"

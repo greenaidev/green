@@ -473,3 +473,18 @@ button:hover {
   font-size: 10px;
   text-decoration: none;
 }
+
+/* width */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* track */
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* thumb */
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
