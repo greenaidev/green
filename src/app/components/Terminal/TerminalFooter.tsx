@@ -1,47 +1,35 @@
 import { useState } from 'react';
 
-const TerminalFooter = () => {
+interface TerminalFooterProps {
+  messages: { role: string; content: string }[];
+  setMessages: React.Dispatch<React.SetStateAction<{ role: string; content: string }[]>>;
+}
+
+const TerminalFooter = ({ messages = [], setMessages }: TerminalFooterProps) => {
   const [input, setInput] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      if (input.startsWith('/')) {
-        handleCommand(input);
-      } else {
-        await sendToOpenAI(input);
-      }
-    } catch (error) {
-      console.error('Error during submission:', error);
+    if (input.startsWith('/')) {
+      handleCommand(input);
+    } else {
+      await sendToOpenAI(input);
     }
 
     setInput('');
   };
 
   const handleCommand = (command: string) => {
-    switch (command) {
-      case '/help':
-        console.log('Help command executed');
-        break;
-      case '/imagine':
-        console.log('Imagine command executed');
-        break;
-      default:
-        console.warn('Unknown command:', command);
-        break;
-    }
+    // Handle commands
   };
 
   const sendToOpenAI = async (prompt: string) => {
     try {
-      const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-      console.log('Chat history loaded:', history);
-
       const response = await fetch('/api/openai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, history }),
+        body: JSON.stringify({ prompt, history: messages }),
       });
 
       if (!response.ok) {
@@ -51,9 +39,15 @@ const TerminalFooter = () => {
       }
 
       const data = await response.json();
-      console.log('OpenAI response:', data.message);
-      const newHistory = [...history, { role: 'user', content: prompt }, { role: 'assistant', content: data.message }];
+      const newHistory = [
+        ...messages,
+        { role: 'user', content: prompt },
+        { role: 'assistant', content: data.message },
+      ];
+
+      // Update both localStorage and the state
       localStorage.setItem('chatHistory', JSON.stringify(newHistory));
+      setMessages(newHistory); // This will trigger re-render in TerminalBody
     } catch (error) {
       console.error('Error during OpenAI submission:', error);
     }

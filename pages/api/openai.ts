@@ -19,11 +19,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const systemPrompt = fs.readFileSync(path.resolve('./system-prompt.txt'), 'utf-8');
     console.log('System prompt loaded successfully');
 
+    const historyArray = Array.isArray(history) ? history : [];
+
     const response = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
-        ...history,
+        ...historyArray,
         { role: 'user', content: prompt },
       ],
     });

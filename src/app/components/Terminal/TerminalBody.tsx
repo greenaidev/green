@@ -1,14 +1,11 @@
-import { useEffect, useState } from 'react';
 import MessageBlock from './MessageBlock';
 
-const TerminalBody = () => {
-  const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
+interface TerminalBodyProps {
+  messages?: { role: string; content: string }[];
+}
 
-  useEffect(() => {
-    const storedHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-    setMessages(storedHistory);
-  }, []);
-
+const TerminalBody = ({ messages = [] }: TerminalBodyProps) => {
+  console.log('Rendering messages:', messages);
   return (
     <div className="body">
       <div className="scroll">
