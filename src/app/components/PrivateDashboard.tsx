@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getAccount, getMint, TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import TerminalBody from './Terminal/TerminalBody';
+import TerminalFooter from './Terminal/TerminalFooter';
 
 interface PrivateDashboardProps {
   walletAddress: string | null;
@@ -53,9 +55,13 @@ const PrivateDashboard = ({ walletAddress }: PrivateDashboardProps) => {
   }
 
   return (
+    <div className="viewport">
+                <TerminalBody />
+                <TerminalFooter />
     <div className="user-balance">
       <p>$SOL: {solBalance !== null ? solBalance.toLocaleString(undefined, { maximumFractionDigits: 4 }) : 'Loading...'}</p>
       <p>${tokenTicker}: {tokenBalance !== null ? tokenBalance.toLocaleString(undefined, { maximumFractionDigits: 0 }) : 'Loading...'}</p>
+    </div>
     </div>
   );
 };
