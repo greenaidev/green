@@ -11,9 +11,12 @@ const Terminal = () => {
     setMessages(storedHistory);
   }, []);
 
+  console.log('Passing setMessages function:', typeof setMessages);
+  console.log('Initialized setMessages function:', typeof setMessages);
+
   return (
     <div className="viewport">
-      <TerminalBody messages={messages} />
+      <TerminalBody key={messages.length} messages={messages} />
       <TerminalFooter messages={messages} setMessages={setMessages} />
     </div>
   );

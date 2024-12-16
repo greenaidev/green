@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface TerminalFooterProps {
   messages: { role: string; content: string }[];
@@ -8,13 +8,24 @@ interface TerminalFooterProps {
 const TerminalFooter = ({ messages = [], setMessages }: TerminalFooterProps) => {
   const [input, setInput] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Log only once when the component mounts
+  useEffect(() => {
+    console.log('Received setMessages function:', typeof setMessages);
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const newMessage = { role: 'user', content: input };
 
     if (input.startsWith('/')) {
       handleCommand(input);
     } else {
-      await sendToOpenAI(input);
+      // Add the user's message to the state immediately
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+
+      console.log('Simulating sendToOpenAI with input:', input);
+      sendToOpenAI(input);
     }
 
     setInput('');
@@ -22,6 +33,14 @@ const TerminalFooter = ({ messages = [], setMessages }: TerminalFooterProps) => 
 
   const handleCommand = (command: string) => {
     // Handle commands
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      console.log('Attempting to call setMessages');
+      handleSubmit(e as unknown as React.FormEvent);
+    }
   };
 
   const sendToOpenAI = async (prompt: string) => {
@@ -53,25 +72,20 @@ const TerminalFooter = ({ messages = [], setMessages }: TerminalFooterProps) => 
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e as unknown as React.FormEvent);
-    }
-  };
-
   return (
     <div className="footer">
       <form className="terminal" onSubmit={handleSubmit}>
-        <textarea
-          required
-          placeholder=">_"
-          maxLength={5000}
-          className="input"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-        ></textarea>
+        <div className="input-container">
+          <span className="input-prefix">{'>_'}</span>
+          <textarea
+            required
+            maxLength={5000}
+            className="input"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+          ></textarea>
+        </div>
       </form>
     </div>
   );

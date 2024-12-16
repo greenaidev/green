@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import CryptoJS from 'crypto-js';
 import winston from 'winston';
-import { checkTokenBalance, TokenError } from '@/app/utils/helpers';
+import { checkTokenBalance } from '@/app/utils/helpers';
 
 const logger = winston.createLogger({
   level: 'info',

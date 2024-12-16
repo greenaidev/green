@@ -374,25 +374,49 @@ button:hover {
   flex: 1;
   padding: 16px 5% 0;
   display: flex;
+  max-height: calc(100% - 120px);
 }
 
 .footer {
   height: 100px;
 }
 
+.input-container {
+  position: relative;
+  width: 100%;
+}
+
+.input-prefix {
+  position: absolute;
+  top: 12px; /* Align with the first line of text */
+  left: 12px; /* Position inside the input */
+  color: var(--font);
+  font-family: Inconsolata, monospace; /* Match the terminal font */
+  pointer-events: none; /* Ensure it doesn't interfere with input */
+}
+
 .input {
+  width: calc(100% - 32px); /* Ensure the input takes the full width of the container */
+  flex-grow: 1;
   border-style: solid;
   border-width: 1px;
   border-color: #ffffff1a #ffffff1a #ffffff1a var(--border);
   background-color: var(--bg-darker);
+  border-radius: 0px;
   height: 60px;
   min-height: 60px;
-  width: 100%;
   margin-bottom: 0;
+  color: var(--font);
+  padding-top: 14px;
+  outline: none; /* Remove default focus outline */
+  resize: none; /* Prevent resizing */
+  padding-left: 36px; /* Add padding to account for the prefix */
 }
 
 .input:active, .input:focus {
-  border-color: var(--border);
+  border-color: #ffffff1a #ffffff1a #ffffff1a var(--border); /* Keep border consistent */
+  border-width: 1px; /* Ensure border width remains the same */
+  outline: none; /* Ensure no outline is shown */
   flex-grow: 1;
 }
 
@@ -466,15 +490,18 @@ button:hover {
 }
 
 .msg-btn {
-  color: var(--font);
+  color: var(--font-inactive);
   margin-left: 16px;
-  line-height: 14px;
+  line-height: 10px;
+  font-size: 10px;
   text-decoration: none;
 }
 
 .scroll {
   border: 1px solid var(--border);
   flex: 1;
+  max-height: 100%;
+  overflow: auto;
   background-color: var(--bg-darker);
 }
 

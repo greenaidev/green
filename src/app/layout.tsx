@@ -3,7 +3,7 @@ import "./globals.css";
 import Header from "./components/Header";
 
 export const metadata = {
-  title: "Web3 App",
+  title: "Green",
   description: "A decentralized web application",
 };
 

@@ -15,6 +15,7 @@ const PrivateDashboard = ({ walletAddress }: PrivateDashboardProps) => {
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
   const tokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS || '';
   const tokenTicker = process.env.NEXT_PUBLIC_TOKEN_TICKER || '';
+  const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
 
   useEffect(() => {
     if (!walletAddress) return;
@@ -56,12 +57,12 @@ const PrivateDashboard = ({ walletAddress }: PrivateDashboardProps) => {
 
   return (
     <div className="viewport">
-                <TerminalBody />
-                <TerminalFooter />
-    <div className="user-balance">
-      <p>$SOL: {solBalance !== null ? solBalance.toLocaleString(undefined, { maximumFractionDigits: 4 }) : 'Loading...'}</p>
-      <p>${tokenTicker}: {tokenBalance !== null ? tokenBalance.toLocaleString(undefined, { maximumFractionDigits: 0 }) : 'Loading...'}</p>
-    </div>
+      <TerminalBody messages={messages} />
+      <TerminalFooter messages={messages} setMessages={setMessages} />
+      <div className="user-balance">
+        <p>$SOL: {solBalance !== null ? solBalance.toLocaleString(undefined, { maximumFractionDigits: 4 }) : 'Loading...'}</p>
+        <p>${tokenTicker}: {tokenBalance !== null ? tokenBalance.toLocaleString(undefined, { maximumFractionDigits: 0 }) : 'Loading...'}</p>
+      </div>
     </div>
   );
 };

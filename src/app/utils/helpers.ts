@@ -4,7 +4,7 @@ import nacl from "tweetnacl";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID, getAccount, getMint } from "@solana/spl-token";
 
-const RPC_ENDPOINT = process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.devnet.solana.com";
+// const RPC_ENDPOINT = process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.devnet.solana.com";
 
 export class TokenError extends Error {
   constructor(message: string) {
@@ -64,7 +64,7 @@ export async function checkTokenBalance(
     });
   }
 
-  let lastError: any = null;
+  let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < retryCount; attempt++) {
     try {
@@ -88,7 +88,7 @@ export async function checkTokenBalance(
         await connection.getLatestBlockhash();
       } catch (err) {
         console.error('Connection test failed:', err);
-        lastError = err;
+        lastError = err as Error;
         continue;
       }
 
@@ -128,7 +128,7 @@ export async function checkTokenBalance(
           }
         } catch (err) {
           console.error("Error checking token account:", err);
-          lastError = err;
+          lastError = err as Error;
           continue;
         }
       }
