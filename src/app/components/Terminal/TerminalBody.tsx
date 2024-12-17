@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import MessageBlock from './MessageBlock';
 
 interface TerminalBodyProps {
   messages: { role: string; content: string; tokens?: number }[];
 }
 
-const TerminalBody = ({ messages = [] }: TerminalBodyProps) => {
+const TerminalBody: React.FC<TerminalBodyProps> = ({ messages }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
