@@ -46,7 +46,7 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ user, content, tokens }) =>
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw]}
           components={{
-            code({ node, inline, className, children, ...props }) {
+            code({ inline, className, children, ...props }) {
               const match = /language-(\w+)/.exec(className || '');
               const language = match ? match[1] : '';
               const key = `${language}-${String(children).slice(0, 10)}`; // Unique key for each code block
