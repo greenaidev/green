@@ -39,8 +39,14 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ user, content, tokens }) =>
     }
   };
 
-  const isImageUrl = (url: string) => {
-    return url.includes('oaidalleapiprodscus.blob.core.windows.net') || url.match(/\.(jpeg|jpg|gif|png)$/) != null;
+  const isImageUrl = (content: string): boolean => {
+    if (!content) return false;
+    return content.includes('http') && 
+      (content.includes('.png') || 
+       content.includes('.jpg') || 
+       content.includes('.jpeg') || 
+       content.includes('.gif') ||
+       content.includes('images.openai.com'));
   };
 
   return (

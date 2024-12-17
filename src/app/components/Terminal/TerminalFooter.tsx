@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { handleCommand } from '../../../utils/commandHandler';
 import useDalle from '../../../hooks/useDalle';
+import useDexScreener from '../../../hooks/useDexScreener';
 
 interface Message {
   role: string;
@@ -20,6 +21,7 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { generateImage, generateMeme, imageUrl, loading: imageLoading } = useDalle();
+  const { fetchTokenInfo, fetchTrendingTokens, fetchLatestPairs, fetchBoostedTokens, loading: tokenLoading } = useDexScreener();
 
   useEffect(() => {
     if (inputRef.current) {
@@ -27,7 +29,7 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
     }
   }, []);
 
-  const isLoading = loading || imageLoading;
+  const isLoading = loading || imageLoading || tokenLoading;
 
   useEffect(() => {
     if (isLoading) {
@@ -65,6 +67,83 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
     }
   }, [imageUrl]);
 
+  const handleTokenInfo = async (address: string) => {
+    const content = await fetchTokenInfo(address);
+    if (content) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content },
+      ]);
+    }
+  };
+
+  const handleTickerInfo = async (symbol: string) => {
+    try {
+      const response = await fetch(`/api/ticker?symbol=${symbol}`);
+      const data = await response.json();
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content: data.content },
+      ]);
+    } catch (error) {
+      console.error('Error fetching ticker info:', error);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content: 'Failed to fetch token information. Please try again.' },
+      ]);
+    }
+  };
+
+  const handleTrendingTokens = async () => {
+    const content = await fetchTrendingTokens();
+    if (content) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content },
+      ]);
+    }
+  };
+
+  const handleLatestPairs = async () => {
+    const content = await fetchLatestPairs();
+    if (content) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content },
+      ]);
+    }
+  };
+
+  const handleBoostedTokens = async () => {
+    const content = await fetchBoostedTokens();
+    if (content) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content },
+      ]);
+    }
+  };
+
+  const handleFilterTokens = async (min: string, max: string, limit?: string) => {
+    try {
+      const params = new URLSearchParams({ min, max });
+      if (limit) params.append('limit', limit);
+      
+      const response = await fetch(`/api/filter?${params}`);
+      const data = await response.json();
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content: data.content },
+      ]);
+    } catch (error) {
+      console.error('Error filtering tokens:', error);
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content: 'Failed to filter tokens. Please try again.' },
+      ]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -92,6 +171,55 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
             },
           ]);
         }
+      } else if (cmd.toLowerCase() === 'filter') {
+        if (args.length >= 2) {
+          setMessages((prev) => [...prev, { role: 'user', content: input }]);
+          const [min, max, limit] = args;
+          await handleFilterTokens(min, max, limit);
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'system',
+              content: 'Please provide min and max market cap values in K (e.g., /filter 12 30).',
+            },
+          ]);
+        }
+      } else if (cmd.toLowerCase() === 'ca') {
+        if (prompt) {
+          setMessages((prev) => [...prev, { role: 'user', content: input }]);
+          await handleTokenInfo(prompt);
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'system',
+              content: 'Please provide a token contract address.',
+            },
+          ]);
+        }
+      } else if (cmd.toLowerCase() === 'ticker') {
+        if (prompt) {
+          setMessages((prev) => [...prev, { role: 'user', content: input }]);
+          await handleTickerInfo(prompt);
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'system',
+              content: 'Please provide a token symbol (e.g., /ticker bonk).',
+            },
+          ]);
+        }
+      } else if (cmd.toLowerCase() === 'trending') {
+        setMessages((prev) => [...prev, { role: 'user', content: input }]);
+        await handleTrendingTokens();
+      } else if (cmd.toLowerCase() === 'latest') {
+        setMessages((prev) => [...prev, { role: 'user', content: input }]);
+        await handleLatestPairs();
+      } else if (cmd.toLowerCase() === 'boosted') {
+        setMessages((prev) => [...prev, { role: 'user', content: input }]);
+        await handleBoostedTokens();
       } else {
         handleCommand({ command: input.slice(1), setMessages });
       }
