@@ -733,3 +733,14 @@ button:hover {
 .msg-icon.system {
   background-color: #ffcc00; /* Different color for system */
 }
+
+.message-image {
+  width: 600px;
+  height: auto;
+  display: block;
+  margin: 20px auto;
+  border-radius: 16px;
+  border-width: 2px;
+  border-color: var(--border-color);
+  border-style: solid;
+}

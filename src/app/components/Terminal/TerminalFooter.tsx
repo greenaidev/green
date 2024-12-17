@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { handleCommand } from '../../../utils/commandHandler';
+import useDalle from '../../../hooks/useDalle';
 
 interface Message {
   role: string;
@@ -17,14 +19,18 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
   const [placeholder, setPlaceholder] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const { generateImage, imageUrl, loading: imageLoading } = useDalle();
+
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, []);
 
+  const isLoading = loading || imageLoading;
+
   useEffect(() => {
-    if (loading) {
+    if (isLoading) {
       const cursorFrames = ['/', '-', '\\', '|'];
       let frameIndex = 0;
       let cursorCount = 1;
@@ -38,27 +44,58 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
         if (frameIndex === 0) {
           cycleCount++;
           if (cycleCount === 3) {
-            cursorCount = cursorCount % 3 + 1; // Cycle through 1, 2, 3
-            cycleCount = 0; // Reset cycle count after 3 full cycles
+            cursorCount = cursorCount % 3 + 1;
+            cycleCount = 0;
           }
         }
-      }, 250); // Change frame every 250ms for faster spinning
+      }, 250);
 
       return () => clearInterval(interval);
     } else {
       setPlaceholder('');
     }
-  }, [loading]);
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (imageUrl) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content: imageUrl },
+      ]);
+    }
+  }, [imageUrl]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    setLoading(true);
-    setMessages((prev) => [...prev, { role: 'user', content: input }]);
-    setInput('');
-    await sendToOpenAI(input);
-    setLoading(false);
+    if (input.startsWith('/')) {
+      const [cmd, ...args] = input.slice(1).split(' ');
+      if (cmd.toLowerCase() === 'imagine') {
+        const prompt = args.join(' ');
+        if (prompt) {
+          setMessages((prev) => [...prev, { role: 'user', content: input }]);
+          handleCommand({ command: input.slice(1), setMessages, setLoading, generateImage });
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'system',
+              content: 'Please provide a prompt for the /imagine command.',
+            },
+          ]);
+        }
+      } else {
+        handleCommand({ command: input.slice(1), setMessages });
+      }
+      setInput('');
+    } else {
+      setLoading(true);
+      setMessages((prev) => [...prev, { role: 'user', content: input }]);
+      setInput('');
+      await sendToOpenAI(input);
+      setLoading(false);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -81,7 +118,7 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={loading}
+            disabled={isLoading}
             placeholder={placeholder}
           ></textarea>
         </div>

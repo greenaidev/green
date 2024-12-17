@@ -39,49 +39,57 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ user, content, tokens }) =>
     }
   };
 
+  const isImageUrl = (url: string) => {
+    return url.includes('oaidalleapiprodscus.blob.core.windows.net') || url.match(/\.(jpeg|jpg|gif|png)$/) != null;
+  };
+
   return (
     <div className={`msg ${user ? 'u' : ''}`}>
       <div className="msg-top">
         <div className={`msg-icon ${user ? 'user' : 'system'}`}></div>
         <div className="msg-content markdown-container">
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
-            components={{
-              code({ inline, className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || '');
-                const language = match ? match[1] : '';
-                const key = `${language}-${String(children).slice(0, 10)}`; // Unique key for each code block
-                return !inline && match ? (
-                  <div className="code-block-container">
-                    <div className="code-block-header">
-                      <span className="code-block-language">{language.toUpperCase()}</span>
-                      <button
-                        onClick={() => handleCopy(String(children).replace(/\n$/, ''), key)}
-                        className="copy-button shared-style"
+          {isImageUrl(content) ? (
+            <img src={content} alt="Generated" className="message-image" />
+          ) : (
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+              components={{
+                code({ inline, className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || '');
+                  const language = match ? match[1] : '';
+                  const key = `${language}-${String(children).slice(0, 10)}`; // Unique key for each code block
+                  return !inline && match ? (
+                    <div className="code-block-container">
+                      <div className="code-block-header">
+                        <span className="code-block-language">{language.toUpperCase()}</span>
+                        <button
+                          onClick={() => handleCopy(String(children).replace(/\n$/, ''), key)}
+                          className="copy-button shared-style"
+                        >
+                          {copyStatus[key] ? 'Copied!' : 'Copy'}
+                        </button>
+                      </div>
+                      <SyntaxHighlighter
+                        style={customStyle}
+                        language={language}
+                        PreTag="div"
+                        {...props}
                       >
-                        {copyStatus[key] ? 'Copied!' : 'Copy'}
-                      </button>
+                        {String(children).replace(/\n$/, '')}
+                      </SyntaxHighlighter>
                     </div>
-                    <SyntaxHighlighter
-                      style={customStyle}
-                      language={language}
-                      PreTag="div"
-                      {...props}
-                    >
-                      {String(children).replace(/\n$/, '')}
-                    </SyntaxHighlighter>
-                  </div>
-                ) : (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                );
-              },
-            }}
-          >
-            {content}
-          </ReactMarkdown>
+                  ) : (
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            >
+              {content}
+            </ReactMarkdown>
+          )}
         </div>
       </div>
       <div className="msg-footer">
