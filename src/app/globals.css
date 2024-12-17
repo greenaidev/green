@@ -124,7 +124,6 @@ button:hover {
 
 /* Specific Button Styles */
 .logout-button,
-.connect-wallet-button,
 .connect-button {
   font-size: 8pt; /* Ensure consistent font size */
   font-weight: bold;
@@ -138,7 +137,6 @@ button:hover {
 }
 
 .logout-button:hover,
-.connect-wallet-button:hover,
 .connect-button:hover {
   background-color: var(--black);
   color: var(--font-color);
@@ -310,49 +308,11 @@ button:hover {
   color: var(--font);
 }
 
-.submit {
-  border-style: solid solid solid none;
-  border-width: 1px;
-  border-color: var(--border);
-  background-color: var(--bg-darker);
-  color: var(--font);
-  text-align: center;
-  width: 60px;
-  height: 60px;
-}
-
 .terminal {
   padding: 0;
   margin: 0;
   display: flex;
   width: 100%;
-}
-
-.connect {
-  border: 1px solid var(--border);
-  background-color: var(--bg);
-  color: var(--font);
-  padding: 6px 12px;
-  font-size: var(--font-size);
-  transition: border .25s ease-in-out;
-}
-
-.connect:hover {
-  border-color: var(--border-focus);
-  background-color: var(--bg-darker);
-}
-
-.link-block {
-  border: 1px solid var(--border);
-  background-color: var(--bg-darker);
-  justify-content: center;
-  align-items: center;
-  width: 40px;
-  height: 40px;
-  padding: 4px;
-  display: flex;
-  position: absolute;
-  inset: 12px auto auto 5%;
 }
 
 .msg {
@@ -362,7 +322,15 @@ button:hover {
 }
 
 .msg.u {
-  background-color: var(--bg-lighter);
+  background-color: var(--bg-lighter); /* Restore user message background color */
+}
+
+.scroll {
+  border: 1px solid var(--border-color);
+  flex: 1;
+  max-height: 100%;
+  overflow: auto;
+  background-color: var(--bg-darker);
 }
 
 .msg-footer {
@@ -387,24 +355,9 @@ button:hover {
   color: var(--font-color);
 }
 
-.scroll {
-  border: 1px solid var(--border-color);
-  flex: 1;
-  max-height: 100%;
-  overflow: auto;
-  background-color: var(--bg-darker);
-}
-
 .msg-content {
   margin-bottom: 4px;
   font-size: var(--font-size);
-}
-
-.green-dot {
-  background-color: var(--font);
-  border-radius: 50%;
-  width: 16px;
-  height: 16px;
 }
 
 .wallet-connected {
@@ -442,6 +395,100 @@ button:hover {
 .markdown-container * {
   font-size: var(--font-size);
   font-family: var(--font-family);
+  color: var(--white); /* Default text color */
+}
+
+.markdown-container h1 {
+  font-size: 16px;
+  color: var(--font-color); /* Green for headings */
+  font-weight: bold;
+}
+
+.markdown-container h2 {
+  font-size: 14px;
+  color: var(--font-color); /* Green for headings */
+  font-weight: bold;
+}
+
+.markdown-container h3 {
+  font-size: 14px;
+  color: var(--white); /* White for h3 */
+  font-weight: bold;
+}
+
+.markdown-container a {
+  color: var(--font-color); /* Green for links */
+  text-decoration: underline;
+}
+
+.markdown-container a:hover {
+  color: #ffcc00; /* Yellow on hover */
+}
+
+.markdown-container blockquote {
+  border-left: 1px solid var(--font-color); /* 1px wide green border */
+  background-color: var(--bg-color-light);
+  padding: 8px 16px;
+  margin: 16px 0;
+  color: var(--font-inactive);
+}
+
+.markdown-container hr {
+  border: 0;
+  border-top: 1px solid var(--border-color); /* Use border-color for hr */
+  margin: 16px 0;
+}
+
+.markdown-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+.markdown-container th,
+.markdown-container td {
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  text-align: left;
+  color: var(--white);
+}
+
+.markdown-container th {
+  background-color: var(--bg-color-light);
+  color: var(--font-color);
+}
+
+.markdown-container pre {
+  background-color: var(--bg-darker);
+  color: var(--white);
+  padding: 8px;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.markdown-container code {
+  background-color: var(--bg-darker);
+  color: var(--font-color);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.markdown-container ul,
+.markdown-container ol {
+  padding-left: 20px;
+}
+
+.markdown-container li {
+  margin-bottom: 4px;
+}
+
+.markdown-container input[type="checkbox"] {
+  accent-color: var(--font-color); /* Custom styling for checkboxes */
+  background-color: var(--black); /* Set background to black */
+  border: 1px solid var(--border-color); /* Use border-color for border */
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 .code-block-header,
@@ -546,4 +593,143 @@ button:hover {
   background-color: transparent;
   animation: spinCursor 1s steps(4) infinite;
   pointer-events: none;
+}
+
+/* Special Styles for Message Elements */
+.message-special {
+  font-size: 8pt;
+  font-weight: bold;
+  color: var(--font-inactive);
+}
+
+.message-special:hover {
+  color: var(--font-color); /* Change to green on hover */
+}
+
+.msg-tokens.message-special {
+  color: var(--font-inactive); /* No hover effect */
+  cursor: default; /* No pointer cursor */
+}
+
+/* Message Styles */
+.msg {
+  border-bottom: 1px solid var(--border);
+  background-color: var(--bg-darker);
+  padding: 12px 16px;
+}
+
+.msg.u {
+  background-color: var(--bg-lighter); /* Restore user message background color */
+}
+
+.msg-top {
+  display: flex;
+  align-items: flex-start; /* Align icon with the first line of text */
+}
+
+.msg-content {
+  margin-bottom: 4px;
+  font-size: var(--font-size);
+  flex-grow: 1; /* Allow content to take up remaining space */
+}
+
+.msg-footer {
+  border-top: 1px solid var(--border);
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 6px;
+  display: flex;
+}
+
+.msg-btn {
+  color: var(--font-inactive);
+  margin-left: 16px;
+  line-height: 10px;
+  font-size: var(--font-size);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.msg-btn:hover {
+  color: var(--font-color);
+}
+
+.msg-content {
+  margin-bottom: 4px;
+  font-size: var(--font-size);
+}
+
+/* Code Block Header Styles */
+.code-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--bg-lighter);
+  padding: 8px 16px;
+  border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.code-block-language {
+  color: var(--font-color); /* Green text for language */
+  font-weight: bold;
+}
+
+.copy-button {
+  font-size: 8pt;
+  font-weight: bold;
+  color: var(--font-inactive); /* Inactive color */
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color var(--transition-duration);
+}
+
+.copy-button:hover {
+  color: var(--font-color); /* Green on hover */
+}
+
+/* Code Block Container Styles */
+.code-block-container {
+  position: relative;
+  background: #000;
+  border-radius: 0;
+}
+
+/* Shared Styles for Consistent Elements */
+.shared-style {
+  font-size: 8pt;
+  font-weight: bold;
+  color: var(--font-inactive);
+}
+
+.shared-style:hover {
+  color: var(--font-color); /* Green on hover */
+}
+
+.msg-tokens {
+  font-size: 8pt;
+  font-weight: bold;
+  color: var(--font-inactive); /* No hover effect */
+  cursor: default; /* No pointer cursor */
+}
+
+/* Icon Styles for Message Blocks */
+.msg-icon {
+  width: 16px; /* Smaller width */
+  height: 16px; /* Smaller height */
+  border: 2px solid var(--border-color);
+  border-radius: 50%;
+  margin-right: 12px; /* Space between icon and message */
+  margin-top: 10px; /* Adjust top margin for alignment */
+  display: inline-block;
+  background-color: var(--bg-color-light); /* Default background color */
+}
+
+.msg-icon.user {
+  background-color: var(--font-color); /* Different color for user */
+}
+
+.msg-icon.system {
+  background-color: #ffcc00; /* Different color for system */
 }
