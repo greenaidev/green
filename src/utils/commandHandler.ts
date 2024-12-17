@@ -1,3 +1,9 @@
+interface Message {
+  role: string;
+  content: string;
+  tokens?: number;
+}
+
 interface CommandHandlerProps {
   command: string;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
