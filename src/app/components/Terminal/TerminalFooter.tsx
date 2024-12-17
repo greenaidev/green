@@ -19,7 +19,7 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
   const [placeholder, setPlaceholder] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const { generateImage, imageUrl, loading: imageLoading } = useDalle();
+  const { generateImage, generateMeme, imageUrl, loading: imageLoading } = useDalle();
 
   useEffect(() => {
     if (inputRef.current) {
@@ -71,17 +71,24 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
 
     if (input.startsWith('/')) {
       const [cmd, ...args] = input.slice(1).split(' ');
-      if (cmd.toLowerCase() === 'imagine') {
-        const prompt = args.join(' ');
+      const prompt = args.join(' ');
+      
+      if (cmd.toLowerCase() === 'imagine' || cmd.toLowerCase() === 'meme') {
         if (prompt) {
           setMessages((prev) => [...prev, { role: 'user', content: input }]);
-          handleCommand({ command: input.slice(1), setMessages, setLoading, generateImage });
+          handleCommand({ 
+            command: input.slice(1), 
+            setMessages, 
+            setLoading, 
+            generateImage, 
+            generateMeme 
+          });
         } else {
           setMessages((prev) => [
             ...prev,
             {
               role: 'system',
-              content: 'Please provide a prompt for the /imagine command.',
+              content: `Please provide a prompt for the /${cmd} command.`,
             },
           ]);
         }

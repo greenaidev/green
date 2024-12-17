@@ -1,70 +1,58 @@
 interface CommandHandlerProps {
   command: string;
-  setMessages: React.Dispatch<React.SetStateAction<{ role: string; content: string; tokens?: number }[]>>;
-  setLoading?: (loading: boolean) => void;
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  setLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   generateImage?: (prompt: string) => Promise<void>;
+  generateMeme?: (prompt: string) => Promise<void>;
 }
 
-export const handleCommand = async ({ command, setMessages, setLoading, generateImage }: CommandHandlerProps) => {
+export const handleCommand = async ({
+  command,
+  setMessages,
+  setLoading,
+  generateImage,
+  generateMeme,
+}: CommandHandlerProps) => {
   const [cmd, ...args] = command.split(' ');
+  const prompt = args.join(' ');
 
   switch (cmd.toLowerCase()) {
     case 'imagine':
-      const prompt = args.join(' ');
-      if (prompt && generateImage && setLoading) {
+      if (generateImage && setLoading) {
         setLoading(true);
         await generateImage(prompt);
         setLoading(false);
-      } else if (!prompt) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'system',
-            content: 'Please provide a prompt for the /imagine command.',
-          },
-        ]);
       }
+      break;
+    case 'meme':
+      if (generateMeme && setLoading) {
+        setLoading(true);
+        await generateMeme(prompt);
+        setLoading(false);
+      }
+      break;
+    case 'clear':
+      setMessages([]);
       break;
     case 'help':
       setMessages((prev) => [
         ...prev,
         {
           role: 'system',
-          content: `
-# Available Commands
-
-- **/help**: Show this help message
-- **/reboot**: Clear the chat
-- **/info**: Display information about the app
-- **/imagine [prompt]**: Generate an image based on the prompt
-
-Welcome to the terminal! Use commands to interact.
-          `,
+          content: `Available commands:
+/clear - Clear the chat history
+/help - Show this help message
+/imagine <prompt> - Generate an image using DALL-E
+/meme <prompt> - Generate a meme using DALL-E with system prompt`,
         },
       ]);
-      break;
-    case 'info':
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'system',
-          content: `
-# Application Information
-
-This app is a decentralized web application built with Next.js. It integrates with OpenAI for chat functionality and supports Solana blockchain interactions for wallet management.
-          `,
-        },
-      ]);
-      break;
-    case 'reboot':
-      setMessages([]);
       break;
     default:
       setMessages((prev) => [
         ...prev,
         {
           role: 'system',
-          content: `Unknown command: ${cmd}`,
+          content: `Unknown command: ${cmd}. Type /help for available commands.`,
         },
       ]);
   }
