@@ -171,6 +171,7 @@ button:hover {
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--border-radius);
   max-width: 400px;
+  min-width: 300px;
   padding: 20px;
   text-align: center;
   color: var(--font-color);
@@ -285,12 +286,14 @@ button:hover {
   border-color: var(--border-color);
   background-color: var(--bg-darker);
   height: 60px;
+  max-height: 120px;
   margin-bottom: 0;
   color: var(--font);
   padding-top: 14px;
   padding-left: 36px;
   outline: none;
   resize: none;
+  overflow-y: auto;
   font-size: var(--font-size);
   font-family: var(--font-family);
 }
@@ -716,31 +719,39 @@ button:hover {
 
 /* Icon Styles for Message Blocks */
 .msg-icon {
-  width: 16px; /* Smaller width */
-  height: 16px; /* Smaller height */
+  min-width: 12px; /* Smaller width */
+  height: 12px; /* Smaller height */
   border: 2px solid var(--border-color);
   border-radius: 50%;
   margin-right: 12px; /* Space between icon and message */
-  margin-top: 10px; /* Adjust top margin for alignment */
+  margin-top: 13px; /* Adjust top margin for alignment */
   display: inline-block;
   background-color: var(--bg-color-light); /* Default background color */
 }
 
 .msg-icon.user {
-  background-color: var(--font-color); /* Different color for user */
+  background-color: #ffcc00; /* Different color for user */
 }
 
 .msg-icon.system {
-  background-color: #ffcc00; /* Different color for system */
+  background-color: var(--font-color); /* Different color for system */
+}
+
+.message-image-container {
+  position: relative;
+  width: 600px;
+  height: 600px;
+  margin: 20px auto;
+  border-radius: 16px;
+  border: 2px solid var(--border-color);
+  overflow: hidden;
 }
 
 .message-image {
-  width: 600px;
-  height: auto;
-  display: block;
-  margin: 20px auto;
   border-radius: 16px;
-  border-width: 2px;
-  border-color: var(--border-color);
-  border-style: solid;
+  transition: transform 0.3s ease;
+}
+
+.message-image:hover {
+  transform: scale(1.02);
 }

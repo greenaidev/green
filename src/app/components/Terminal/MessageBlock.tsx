@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import Image from 'next/image';
 
 interface MessageBlockProps {
   user: boolean;
@@ -55,7 +56,16 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ user, content, tokens }) =>
         <div className={`msg-icon ${user ? 'user' : 'system'}`}></div>
         <div className="msg-content markdown-container">
           {isImageUrl(content) ? (
-            <img src={content} alt="Generated" className="message-image" />
+            <div className="message-image-container" style={{ position: 'relative', width: '600px', height: '600px', margin: '20px auto' }}>
+              <Image
+                src={content}
+                alt="Generated"
+                fill
+                style={{ objectFit: 'contain' }}
+                className="message-image"
+                unoptimized // Since we're dealing with dynamic DALL-E URLs
+              />
+            </div>
           ) : (
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}

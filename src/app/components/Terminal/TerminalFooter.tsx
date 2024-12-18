@@ -23,11 +23,19 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
   const { generateImage, generateMeme, imageUrl, loading: imageLoading } = useDalle();
   const { fetchTokenInfo, fetchTrendingTokens, fetchLatestPairs, fetchBoostedTokens, loading: tokenLoading } = useDexScreener();
 
+  // Focus input on mount
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
   }, []);
+
+  // Refocus input after loading state changes
+  useEffect(() => {
+    if (!loading && !imageLoading && !tokenLoading && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [loading, imageLoading, tokenLoading]);
 
   const isLoading = loading || imageLoading || tokenLoading;
 
@@ -55,6 +63,10 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
       return () => clearInterval(interval);
     } else {
       setPlaceholder('');
+      // Refocus when loading ends
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }
   }, [isLoading]);
 
@@ -64,8 +76,12 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
         ...prev,
         { role: 'system', content: imageUrl },
       ]);
+      // Refocus after image is added
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }
-  }, [imageUrl]);
+  }, [imageUrl, setMessages]);
 
   const handleTokenInfo = async (address: string) => {
     const content = await fetchTokenInfo(address);
@@ -124,26 +140,6 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
     }
   };
 
-  const handleFilterTokens = async (min: string, max: string, limit?: string) => {
-    try {
-      const params = new URLSearchParams({ min, max });
-      if (limit) params.append('limit', limit);
-      
-      const response = await fetch(`/api/filter?${params}`);
-      const data = await response.json();
-      setMessages((prev) => [
-        ...prev,
-        { role: 'system', content: data.content },
-      ]);
-    } catch (error) {
-      console.error('Error filtering tokens:', error);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'system', content: 'Failed to filter tokens. Please try again.' },
-      ]);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -154,7 +150,6 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
       
       if (cmd.toLowerCase() === 'imagine' || cmd.toLowerCase() === 'meme') {
         if (prompt) {
-          setMessages((prev) => [...prev, { role: 'user', content: input }]);
           handleCommand({ 
             command: input.slice(1), 
             setMessages, 
@@ -171,19 +166,41 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
             },
           ]);
         }
-      } else if (cmd.toLowerCase() === 'filter') {
-        if (args.length >= 2) {
-          setMessages((prev) => [...prev, { role: 'user', content: input }]);
-          const [min, max, limit] = args;
-          await handleFilterTokens(min, max, limit);
-        } else {
+      } else if (cmd.toLowerCase() === 'dex') {
+        if (!prompt) {
           setMessages((prev) => [
             ...prev,
             {
               role: 'system',
-              content: 'Please provide min and max market cap values in K (e.g., /filter 12 30).',
+              content: 'Please specify a dex command: latest, boosted, or trending',
             },
           ]);
+          return;
+        }
+
+        const [subCmd] = prompt.split(' ');
+        
+        // Add user's command to chat history
+        setMessages((prev) => [...prev, { role: 'user', content: input }]);
+        
+        switch (subCmd.toLowerCase()) {
+          case 'latest':
+            await handleLatestPairs();
+            break;
+          case 'boosted':
+            await handleBoostedTokens();
+            break;
+          case 'trending':
+            await handleTrendingTokens();
+            break;
+          default:
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: 'system',
+                content: 'Unknown dex command. Available commands: latest, boosted, trending',
+              },
+            ]);
         }
       } else if (cmd.toLowerCase() === 'ca') {
         if (prompt) {
@@ -211,25 +228,24 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
             },
           ]);
         }
-      } else if (cmd.toLowerCase() === 'trending') {
-        setMessages((prev) => [...prev, { role: 'user', content: input }]);
-        await handleTrendingTokens();
-      } else if (cmd.toLowerCase() === 'latest') {
-        setMessages((prev) => [...prev, { role: 'user', content: input }]);
-        await handleLatestPairs();
-      } else if (cmd.toLowerCase() === 'boosted') {
-        setMessages((prev) => [...prev, { role: 'user', content: input }]);
-        await handleBoostedTokens();
       } else {
         handleCommand({ command: input.slice(1), setMessages });
       }
       setInput('');
+      // Refocus after command execution
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     } else {
       setLoading(true);
       setMessages((prev) => [...prev, { role: 'user', content: input }]);
       setInput('');
       await sendToOpenAI(input);
       setLoading(false);
+      // Refocus after OpenAI response
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
     }
   };
 
@@ -255,6 +271,12 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
             onKeyDown={handleKeyDown}
             disabled={isLoading}
             placeholder={placeholder}
+            onBlur={() => {
+              // Prevent losing focus unless disabled
+              if (!isLoading) {
+                inputRef.current?.focus();
+              }
+            }}
           ></textarea>
         </div>
       </form>

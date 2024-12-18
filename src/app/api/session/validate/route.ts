@@ -17,6 +17,14 @@ export async function GET() {
     const session = JSON.parse(decryptedData);
 
     if (!session || Date.now() > session.expiresAt) {
+      // Clear the expired cookie
+      cookieStore.set('session', '', {
+        expires: new Date(0),
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'strict',
+        path: '/',
+      });
       return NextResponse.json({ message: "Session expired" }, { status: 401 });
     }
 
@@ -28,6 +36,15 @@ export async function GET() {
     return NextResponse.json({ message: "Session valid", user: session });
   } catch (error) {
     console.error('Error validating session:', error);
+    // Clear the cookie on error as well
+    const cookieStore = await cookies();
+    cookieStore.set('session', '', {
+      expires: new Date(0),
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: 'strict',
+      path: '/',
+    });
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 } 

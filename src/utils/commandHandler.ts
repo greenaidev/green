@@ -21,6 +21,10 @@ export const handleCommand = async ({
 }: CommandHandlerProps) => {
   const [cmd, ...args] = command.split(' ');
   const prompt = args.join(' ');
+  const fullCommand = `/${command}`;
+
+  // Add user's command to chat history first
+  setMessages((prev) => [...prev, { role: 'user', content: fullCommand }]);
 
   switch (cmd.toLowerCase()) {
     case 'imagine':
@@ -56,10 +60,9 @@ export const handleCommand = async ({
 - \`/ticker <symbol>\` - Get token information by symbol (e.g., /ticker bonk)
 
 ## Market Data
-- \`/trending\` - Show top 50 trending tokens
-- \`/latest\` - Show 50 most recently created Solana pairs
-- \`/boosted\` - Show top 50 most boosted tokens
-- \`/filter <min> <max> [limit]\` - Filter latest tokens by market cap range (in K, e.g., /filter 12 30 100)
+- \`/dex latest\` - Show 50 most recently created Solana pairs
+- \`/dex trending\` - Show top 50 trending tokens
+- \`/dex boosted\` - Show top 50 most boosted tokens
 
 ## System Commands
 - \`/clear\` - Clear the chat history
