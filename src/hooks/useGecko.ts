@@ -6,10 +6,30 @@ interface GeckoHookReturn {
   loading: boolean;
 }
 
+interface CoinData {
+  market_cap_rank: number;
+  name: string;
+  symbol: string;
+  current_price: number;
+  price_change_percentage_24h: number;
+  price_change_percentage_7d_in_currency?: number;
+  market_cap: number;
+  total_volume: number;
+}
+
+interface TrendingCoin {
+  item: {
+    name: string;
+    symbol: string;
+    price_btc: number;
+    market_cap_rank: number | null;
+  };
+}
+
 const useGecko = (): GeckoHookReturn => {
   const [loading, setLoading] = useState(false);
 
-  const formatMarketData = (data: any[]): string => {
+  const formatMarketData = (data: CoinData[]): string => {
     const tableHeader = '| Rank | Name | Symbol | Price (USD) | 24h % | 7d % | Market Cap | Volume 24h |\n' +
                        '|------|------|--------|-------------|--------|-------|------------|------------|\n';
     
@@ -24,7 +44,7 @@ const useGecko = (): GeckoHookReturn => {
     return `# Top 50 Cryptocurrencies by Market Cap\n\n${tableHeader}${rows}\n\n*Data from CoinGecko*`;
   };
 
-  const formatTrendingData = (data: any[]): string => {
+  const formatTrendingData = (data: TrendingCoin[]): string => {
     const tableHeader = '| Rank | Name | Symbol | Price (BTC) | Market Cap Rank |\n' +
                        '|------|------|--------|-------------|----------------|\n';
     
@@ -40,7 +60,7 @@ const useGecko = (): GeckoHookReturn => {
     setLoading(true);
     try {
       const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=24h,7d');
-      const data = await response.json();
+      const data = await response.json() as CoinData[];
       return formatMarketData(data);
     } catch (error) {
       console.error('Error fetching top coins:', error);
@@ -55,7 +75,7 @@ const useGecko = (): GeckoHookReturn => {
     try {
       const response = await fetch('https://api.coingecko.com/api/v3/search/trending');
       const data = await response.json();
-      return formatTrendingData(data.coins);
+      return formatTrendingData(data.coins as TrendingCoin[]);
     } catch (error) {
       console.error('Error fetching trending coins:', error);
       return 'Failed to fetch trending coins data. Please try again later.';

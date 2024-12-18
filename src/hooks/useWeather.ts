@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Location } from '../types/location';
+import type { WeatherData } from '../types/weather';
 import locationData from '../data/locations.json';
 
 interface WeatherHookReturn {
@@ -8,12 +9,17 @@ interface WeatherHookReturn {
   loading: boolean;
 }
 
+interface LocationData {
+  locations: Location[];
+}
+
 const useWeather = (): WeatherHookReturn => {
   const [loading, setLoading] = useState(false);
 
   const findLocation = (query: string): Location | null => {
     const normalizedQuery = query.toLowerCase().trim();
-    const location = (locationData as any).locations.find((loc: Location) => 
+    const data = locationData as LocationData;
+    const location = data.locations.find((loc: Location) => 
       loc.name.toLowerCase() === normalizedQuery ||
       loc.aliases.some(alias => alias.toLowerCase() === normalizedQuery)
     );
@@ -24,7 +30,8 @@ const useWeather = (): WeatherHookReturn => {
     let nearestCity: Location | null = null;
     let shortestDistance = Infinity;
 
-    (locationData as any).locations.forEach((loc: Location) => {
+    const data = locationData as LocationData;
+    data.locations.forEach((loc: Location) => {
       const distance = calculateDistance(
         latitude,
         longitude,
@@ -68,7 +75,7 @@ const useWeather = (): WeatherHookReturn => {
     return '🌡️';  // Default
   };
 
-  const formatWeatherData = (data: any, location: Location): string => {
+  const formatWeatherData = (data: WeatherData, location: Location): string => {
     const temp = Math.round(data.main.temp);
     const feelsLike = Math.round(data.main.feels_like);
     const weatherEmoji = getWeatherEmoji(data.weather[0].id);
@@ -82,7 +89,7 @@ const useWeather = (): WeatherHookReturn => {
 *💨 Wind: ${windSpeed} km/h*`;
   };
 
-  const fetchWeather = async (lat: number, lon: number): Promise<any> => {
+  const fetchWeather = async (lat: number, lon: number): Promise<WeatherData> => {
     const response = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
     
     if (!response.ok) {

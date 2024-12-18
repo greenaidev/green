@@ -1,10 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import type { WeatherData } from '../../src/types/weather';
+
+interface ErrorResponse {
+  error: string;
+}
 
 const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY;
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse<WeatherData | ErrorResponse>
 ) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
