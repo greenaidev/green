@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { handleCommand } from '../../../utils/commandHandler';
 import useDalle from '../../../hooks/useDalle';
 import useDexScreener from '../../../hooks/useDexScreener';
+import useGecko from '../../../hooks/useGecko';
+import useTime from '../../../hooks/useTime';
+import useWeather from '../../../hooks/useWeather';
 
 interface Message {
   role: string;
@@ -22,6 +25,9 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
 
   const { generateImage, generateMeme, imageUrl, loading: imageLoading } = useDalle();
   const { fetchTokenInfo, fetchTrendingTokens, fetchLatestPairs, fetchBoostedTokens, loading: tokenLoading } = useDexScreener();
+  const { fetchTopCoins, fetchTrendingCoins, loading: geckoLoading } = useGecko();
+  const { getLocalTime, getLocationTime, loading: timeLoading } = useTime();
+  const { getLocalWeather, getLocationWeather, loading: weatherLoading } = useWeather();
 
   // Focus input on mount
   useEffect(() => {
@@ -32,12 +38,12 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
 
   // Refocus input after loading state changes
   useEffect(() => {
-    if (!loading && !imageLoading && !tokenLoading && inputRef.current) {
+    if (!loading && !imageLoading && !tokenLoading && !geckoLoading && !timeLoading && !weatherLoading && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [loading, imageLoading, tokenLoading]);
+  }, [loading, imageLoading, tokenLoading, geckoLoading, timeLoading, weatherLoading]);
 
-  const isLoading = loading || imageLoading || tokenLoading;
+  const isLoading = loading || imageLoading || tokenLoading || geckoLoading || timeLoading || weatherLoading;
 
   useEffect(() => {
     if (isLoading) {
@@ -140,6 +146,26 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
     }
   };
 
+  const handleGeckoTop = async () => {
+    const content = await fetchTopCoins();
+    if (content) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content },
+      ]);
+    }
+  };
+
+  const handleGeckoTrending = async () => {
+    const content = await fetchTrendingCoins();
+    if (content) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'system', content },
+      ]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -166,6 +192,27 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
             },
           ]);
         }
+      } else if (cmd.toLowerCase() === 'time') {
+        handleCommand({
+          command: input.slice(1),
+          setMessages,
+          getLocalTime,
+          getLocationTime
+        });
+      } else if (cmd.toLowerCase() === 'weather') {
+        handleCommand({
+          command: input.slice(1),
+          setMessages,
+          getLocalWeather,
+          getLocationWeather
+        });
+      } else if (cmd.toLowerCase() === 'gecko') {
+        handleCommand({
+          command: input.slice(1),
+          setMessages,
+          fetchGeckoTop: handleGeckoTop,
+          fetchGeckoTrending: handleGeckoTrending
+        });
       } else if (cmd.toLowerCase() === 'dex') {
         if (!prompt) {
           setMessages((prev) => [

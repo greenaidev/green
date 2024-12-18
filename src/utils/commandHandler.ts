@@ -10,6 +10,12 @@ interface CommandHandlerProps {
   setLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   generateImage?: (prompt: string) => Promise<void>;
   generateMeme?: (prompt: string) => Promise<void>;
+  fetchGeckoTop?: () => Promise<void>;
+  fetchGeckoTrending?: () => Promise<void>;
+  getLocalTime?: () => Promise<string>;
+  getLocationTime?: (location: string) => Promise<string>;
+  getLocalWeather?: () => Promise<string>;
+  getLocationWeather?: (location: string) => Promise<string>;
 }
 
 export const handleCommand = async ({
@@ -18,6 +24,12 @@ export const handleCommand = async ({
   setLoading,
   generateImage,
   generateMeme,
+  fetchGeckoTop,
+  fetchGeckoTrending,
+  getLocalTime,
+  getLocationTime,
+  getLocalWeather,
+  getLocationWeather,
 }: CommandHandlerProps) => {
   const [cmd, ...args] = command.split(' ');
   const prompt = args.join(' ');
@@ -27,6 +39,52 @@ export const handleCommand = async ({
   setMessages((prev) => [...prev, { role: 'user', content: fullCommand }]);
 
   switch (cmd.toLowerCase()) {
+    case 'weather':
+      if (!prompt && getLocalWeather) {
+        const weatherInfo = await getLocalWeather();
+        setMessages((prev) => [
+          ...prev,
+          { role: 'system', content: weatherInfo },
+        ]);
+      } else if (prompt && getLocationWeather) {
+        const weatherInfo = await getLocationWeather(prompt);
+        setMessages((prev) => [
+          ...prev,
+          { role: 'system', content: weatherInfo },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'system',
+            content: 'Usage: /weather [location] - Get current weather (local or for a specific location)',
+          },
+        ]);
+      }
+      break;
+    case 'time':
+      if (!prompt && getLocalTime) {
+        const timeInfo = await getLocalTime();
+        setMessages((prev) => [
+          ...prev,
+          { role: 'system', content: timeInfo },
+        ]);
+      } else if (prompt && getLocationTime) {
+        const timeInfo = await getLocationTime(prompt);
+        setMessages((prev) => [
+          ...prev,
+          { role: 'system', content: timeInfo },
+        ]);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'system',
+            content: 'Usage: /time [location] - Get current time (local or for a specific location)',
+          },
+        ]);
+      }
+      break;
     case 'imagine':
       if (generateImage && setLoading) {
         setLoading(true);
@@ -44,12 +102,35 @@ export const handleCommand = async ({
     case 'clear':
       setMessages([]);
       break;
+    case 'gecko':
+      if (!prompt) {
+        if (fetchGeckoTop) {
+          await fetchGeckoTop();
+        }
+      } else if (prompt.toLowerCase() === 'trending' && fetchGeckoTrending) {
+        await fetchGeckoTrending();
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'system',
+            content: 'Available gecko commands: /gecko (top 50 by market cap), /gecko trending',
+          },
+        ]);
+      }
+      break;
     case 'help':
       setMessages((prev) => [
         ...prev,
         {
           role: 'system',
           content: `# Available Commands
+
+## Weather & Time
+- \`/weather\` - Get current local weather
+- \`/weather <location>\` - Get weather for a location (e.g., /weather tokyo)
+- \`/time\` - Get current local time
+- \`/time <location>\` - Get current time for a location (e.g., /time tokyo)
 
 ## Image Generation
 - \`/imagine <prompt>\` - Generate an image using DALL-E
@@ -63,6 +144,8 @@ export const handleCommand = async ({
 - \`/dex latest\` - Show 50 most recently created Solana pairs
 - \`/dex trending\` - Show top 50 trending tokens
 - \`/dex boosted\` - Show top 50 most boosted tokens
+- \`/gecko\` - Show top 50 coins by market cap
+- \`/gecko trending\` - Show trending coins on CoinGecko
 
 ## System Commands
 - \`/clear\` - Clear the chat history
@@ -84,17 +167,21 @@ Welcome to the terminal! Use commands to interact with the system.`,
 - **Image Generation**: Create images with DALL-E 3
 - **Token Data**: Track Solana tokens using DexScreener
 - **Market Analysis**: View trending and latest tokens
+- **Weather & Time**: Get worldwide weather and time information
 
 ## Technologies
 - Next.js for the framework
 - OpenAI for AI capabilities
 - DexScreener for market data
-- Markdown for content rendering
+- CoinGecko for crypto market data
+- OpenWeather for weather data
+- Markdown for content formatting
+- Prism.js for syntax highlighting
 
 ## Commands
 Type \`/help\` to see all available commands.
 
-Data provided by DexScreener • Built with ❤️ using Next.js`,
+Data provided by DexScreener, CoinGecko & OpenWeather • Built with ❤️ using Next.js`,
         },
       ]);
       break;

@@ -1,0 +1,328 @@
+{
+  "locations": [
+    {
+      "name": "Shanghai",
+      "country": "China",
+      "countryEmoji": "🇨🇳",
+      "cityEmoji": "🌆",
+      "timezone": "Asia/Shanghai",
+      "coordinates": {
+        "lat": 31.2304,
+        "lon": 121.4737
+      },
+      "aliases": ["shanghai", "shanghai china", "shangai", "上海"]
+    },
+    {
+      "name": "Beijing",
+      "country": "China",
+      "countryEmoji": "🇨🇳",
+      "cityEmoji": "🏛️",
+      "timezone": "Asia/Shanghai",
+      "coordinates": {
+        "lat": 39.9042,
+        "lon": 116.4074
+      },
+      "aliases": ["beijing", "peking", "beijing china", "bei jing", "北京"]
+    },
+    {
+      "name": "Mumbai",
+      "country": "India",
+      "countryEmoji": "🇮🇳",
+      "cityEmoji": "🎬",
+      "timezone": "Asia/Kolkata",
+      "coordinates": {
+        "lat": 19.0760,
+        "lon": 72.8777
+      },
+      "aliases": ["bombay", "mumbai india", "bombay india", "मुंबई"]
+    },
+    {
+      "name": "Delhi",
+      "country": "India",
+      "countryEmoji": "🇮🇳",
+      "cityEmoji": "🕌",
+      "timezone": "Asia/Kolkata",
+      "coordinates": {
+        "lat": 28.6139,
+        "lon": 77.2090
+      },
+      "aliases": ["new delhi", "delhi india", "new delhi india", "newdelhi", "नई दिल्ली", "दिल्ली"]
+    },
+    {
+      "name": "São Paulo",
+      "country": "Brazil",
+      "countryEmoji": "🇧🇷",
+      "cityEmoji": "⚽",
+      "timezone": "America/Sao_Paulo",
+      "coordinates": {
+        "lat": -23.5505,
+        "lon": -46.6333
+      },
+      "aliases": ["sao paulo", "sao paulo brazil", "saopaulo", "são paulo", "são paulo brazil", "sao paolo", "são paolo", "sampa"]
+    },
+    {
+      "name": "México City",
+      "country": "Mexico",
+      "countryEmoji": "🇲🇽",
+      "cityEmoji": "🌮",
+      "timezone": "America/Mexico_City",
+      "coordinates": {
+        "lat": 19.4326,
+        "lon": -99.1332
+      },
+      "aliases": ["mexico city", "cdmx", "ciudad de mexico", "méxico city", "mexico df", "df mexico", "distrito federal", "ciudad de méxico"]
+    },
+    {
+      "name": "Cairo",
+      "country": "Egypt",
+      "countryEmoji": "🇪🇬",
+      "cityEmoji": "🔺",
+      "timezone": "Africa/Cairo",
+      "coordinates": {
+        "lat": 30.0444,
+        "lon": 31.2357
+      },
+      "aliases": ["cairo", "cairo egypt", "al qahirah", "القاهرة"]
+    },
+    {
+      "name": "Москва",
+      "country": "Russia",
+      "countryEmoji": "🇷🇺",
+      "cityEmoji": "🏰",
+      "timezone": "Europe/Moscow",
+      "coordinates": {
+        "lat": 55.7558,
+        "lon": 37.6173
+      },
+      "aliases": ["moscow", "moscow russia", "moskva", "mockba", "moskau", "moscou"]
+    },
+    {
+      "name": "İstanbul",
+      "country": "Turkey",
+      "countryEmoji": "🇹🇷",
+      "cityEmoji": "🕌",
+      "timezone": "Europe/Istanbul",
+      "coordinates": {
+        "lat": 41.0082,
+        "lon": 28.9784
+      },
+      "aliases": ["istanbul", "constantinople", "istanbul turkey", "stamboul", "constantinopolis", "İstanbul"]
+    },
+    {
+      "name": "Wien",
+      "country": "Austria",
+      "countryEmoji": "🇦🇹",
+      "cityEmoji": "🎭",
+      "timezone": "Europe/Vienna",
+      "coordinates": {
+        "lat": 48.2082,
+        "lon": 16.3738
+      },
+      "aliases": ["vienna", "vienna austria", "wien", "wien osterreich", "wien österreich", "vienne"]
+    },
+    {
+      "name": "København",
+      "country": "Denmark",
+      "countryEmoji": "🇩🇰",
+      "cityEmoji": "🧜‍♀️",
+      "timezone": "Europe/Copenhagen",
+      "coordinates": {
+        "lat": 55.6761,
+        "lon": 12.5683
+      },
+      "aliases": ["copenhagen", "copenhagen denmark", "københavn", "kobenhavn", "koebenhavn", "kopenhagen"]
+    },
+    {
+      "name": "Praha",
+      "country": "Czech Republic",
+      "countryEmoji": "🇨🇿",
+      "cityEmoji": "🏰",
+      "timezone": "Europe/Prague",
+      "coordinates": {
+        "lat": 50.0755,
+        "lon": 14.4378
+      },
+      "aliases": ["prague", "prague czech", "praha", "prag", "praga", "prague czech republic"]
+    },
+    {
+      "name": "香港",
+      "country": "Hong Kong",
+      "countryEmoji": "🇭🇰",
+      "cityEmoji": "🚢",
+      "timezone": "Asia/Hong_Kong",
+      "coordinates": {
+        "lat": 22.3193,
+        "lon": 114.1694
+      },
+      "aliases": ["hong kong", "hongkong", "hk", "hong kong sar", "xianggang", "香港"]
+    },
+    {
+      "name": "서울",
+      "country": "South Korea",
+      "countryEmoji": "🇰🇷",
+      "cityEmoji": "🗼",
+      "timezone": "Asia/Seoul",
+      "coordinates": {
+        "lat": 37.5665,
+        "lon": 126.9780
+      },
+      "aliases": ["seoul", "seoul korea", "seoul south korea", "seul", "서울"]
+    },
+    {
+      "name": "東京",
+      "country": "Japan",
+      "countryEmoji": "🇯🇵",
+      "cityEmoji": "⛩️",
+      "timezone": "Asia/Tokyo",
+      "coordinates": {
+        "lat": 35.6762,
+        "lon": 139.6503
+      },
+      "aliases": ["tokyo", "tokyo japan", "toukyou", "東京", "とうきょう"]
+    },
+    {
+      "name": "New York",
+      "country": "United States",
+      "countryEmoji": "🇺🇸",
+      "cityEmoji": "🗽",
+      "timezone": "America/New_York",
+      "coordinates": {
+        "lat": 40.7128,
+        "lon": -74.0060
+      },
+      "aliases": ["nyc", "new york city", "big apple", "manhattan", "ny", "nueva york", "newyork"]
+    },
+    {
+      "name": "London",
+      "country": "United Kingdom",
+      "countryEmoji": "🇬🇧",
+      "cityEmoji": "🎡",
+      "timezone": "Europe/London",
+      "coordinates": {
+        "lat": 51.5074,
+        "lon": -0.1278
+      },
+      "aliases": ["london uk", "greater london", "londres", "londyn", "londen"]
+    },
+    {
+      "name": "Dubai",
+      "country": "United Arab Emirates",
+      "countryEmoji": "🇦🇪",
+      "cityEmoji": "🌇",
+      "timezone": "Asia/Dubai",
+      "coordinates": {
+        "lat": 25.2048,
+        "lon": 55.2708
+      },
+      "aliases": ["dubai uae", "dubai emirates", "دبي", "dubayy"]
+    },
+    {
+      "name": "Singapore",
+      "country": "Singapore",
+      "countryEmoji": "🇸🇬",
+      "cityEmoji": "🦁",
+      "timezone": "Asia/Singapore",
+      "coordinates": {
+        "lat": 1.3521,
+        "lon": 103.8198
+      },
+      "aliases": ["sg", "singapore city", "新加坡", "சிங்கப்பூர்", "싱가포르"]
+    },
+    {
+      "name": "Los Angeles",
+      "country": "United States",
+      "countryEmoji": "🇺🇸",
+      "cityEmoji": "🎬",
+      "timezone": "America/Los_Angeles",
+      "coordinates": {
+        "lat": 34.0522,
+        "lon": -118.2437
+      },
+      "aliases": ["la", "los angeles ca", "lax", "hollywood", "la city", "los angeles california"]
+    },
+    {
+      "name": "Chicago",
+      "country": "United States",
+      "countryEmoji": "🇺🇸",
+      "cityEmoji": "🌭",
+      "timezone": "America/Chicago",
+      "coordinates": {
+        "lat": 41.8781,
+        "lon": -87.6298
+      },
+      "aliases": ["chi", "chicago il", "windy city", "chicago illinois", "chitown"]
+    },
+    {
+      "name": "San Francisco",
+      "country": "United States",
+      "countryEmoji": "🇺🇸",
+      "cityEmoji": "🌉",
+      "timezone": "America/Los_Angeles",
+      "coordinates": {
+        "lat": 37.7749,
+        "lon": -122.4194
+      },
+      "aliases": ["sf", "san francisco ca", "bay area", "frisco", "san fran", "san francisco california"]
+    },
+    {
+      "name": "Roma",
+      "country": "Italy",
+      "countryEmoji": "🇮🇹",
+      "cityEmoji": "🏛️",
+      "timezone": "Europe/Rome",
+      "coordinates": {
+        "lat": 41.9028,
+        "lon": 12.4964
+      },
+      "aliases": ["rome", "rome italy", "eternal city", "città eterna", "roma capitale"]
+    },
+    {
+      "name": "Milano",
+      "country": "Italy",
+      "countryEmoji": "🇮🇹",
+      "cityEmoji": "🛍️",
+      "timezone": "Europe/Rome",
+      "coordinates": {
+        "lat": 45.4642,
+        "lon": 9.1900
+      },
+      "aliases": ["milan", "milan italy", "milano italy", "milano italia"]
+    },
+    {
+      "name": "Venezia",
+      "country": "Italy",
+      "countryEmoji": "🇮🇹",
+      "cityEmoji": "🚣",
+      "timezone": "Europe/Rome",
+      "coordinates": {
+        "lat": 45.4408,
+        "lon": 12.3155
+      },
+      "aliases": ["venice", "venice italy", "venezia italy", "venezia italia"]
+    },
+    {
+      "name": "京都",
+      "country": "Japan",
+      "countryEmoji": "🇯🇵",
+      "cityEmoji": "🍁",
+      "timezone": "Asia/Tokyo",
+      "coordinates": {
+        "lat": 35.0116,
+        "lon": 135.7681
+      },
+      "aliases": ["kyoto", "kyoto japan", "きょうと", "京都"]
+    },
+    {
+      "name": "大阪",
+      "country": "Japan",
+      "countryEmoji": "🇯🇵",
+      "cityEmoji": "🦐",
+      "timezone": "Asia/Tokyo",
+      "coordinates": {
+        "lat": 34.6937,
+        "lon": 135.5023
+      },
+      "aliases": ["osaka", "osaka japan", "おおさか", "大阪"]
+    }
+  ]
+} 
