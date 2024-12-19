@@ -1,26 +1,20 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import dotenv from 'dotenv';
-dotenv.config();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const { prompt, history } = req.body;
-
+export async function POST(request: NextRequest) {
   try {
-    const systemPrompt = process.env.SYSTEM_PROMPT || 'Default system prompt';
+    const body = await request.json();
+    const { prompt, history } = body;
 
+    const systemPrompt = process.env.SYSTEM_PROMPT || 'Default system prompt';
     const historyArray = Array.isArray(history) ? history : [];
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-4',
       messages: [
         { role: 'system', content: systemPrompt },
         ...historyArray,
@@ -33,9 +27,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     console.log('Extracted totalTokens:', totalTokens);
 
-    res.status(200).json({ message, totalTokens });
+    return NextResponse.json({ message, totalTokens });
   } catch (error) {
     console.error('Error during OpenAI submission:', error);
-    res.status(500).json({ error: 'Failed to fetch response from OpenAI' });
+    return NextResponse.json(
+      { error: 'Failed to fetch response from OpenAI' },
+      { status: 500 }
+    );
   }
 } 

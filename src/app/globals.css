@@ -820,3 +820,148 @@ button:hover {
 .tradingview-widget-copyright .blue-text {
   color: var(--font-color);
 }
+
+/* Terminal Token & Pool Dashboards */
+.token-dashboard,
+.pools-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.token-dashboard {
+  max-width: 800px;
+}
+
+.pools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+  margin: 24px 0;
+}
+
+.pool-card,
+.metric-card,
+.activity-card,
+.change-card,
+.trade {
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contract-address {
+  background: rgba(0,0,0,0.1);
+  padding: 8px 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+  font-size: 0.8em;
+  word-break: break-all;
+}
+
+.pool-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.dex-badge {
+  background: rgba(255,255,255,0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.price-header,
+.price-section {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin: 24px 0;
+}
+
+.price-section {
+  justify-content: space-between;
+  margin: 16px 0;
+}
+
+.current-price {
+  display: flex;
+  flex-direction: column;
+}
+
+.current-price .label,
+.metric-title,
+.trade .label {
+  font-size: 0.9em;
+  opacity: 0.7;
+}
+
+.current-price .value {
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.price-change {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.price-change .period {
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.pool-card .metrics-grid {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.metric-value,
+.trade .value {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.trading-activity,
+.price-changes {
+  margin: 24px 0;
+}
+
+.activity-grid,
+.changes-grid,
+.trades-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.trades-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.volume {
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+
+/* Token Status Colors */
+.positive { color: #00ff00; }
+.negative { color: #ff0000; }

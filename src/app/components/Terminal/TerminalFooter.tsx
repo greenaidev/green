@@ -25,7 +25,13 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const { generateImage, generateMeme, imageUrl, loading: imageLoading } = useDalle();
-  const { fetchTokenInfo, fetchTrendingTokens, fetchLatestPairs, fetchBoostedTokens, loading: tokenLoading } = useDexScreener();
+  const { 
+    fetchTokenInfo, 
+    fetchTrendingTokens, 
+    fetchLatestPairs, 
+    fetchBoostedTokens, 
+    loading: tokenLoading 
+  } = useDexScreener();
   const { fetchTopCoins, fetchTrendingCoins, loading: geckoLoading } = useGecko();
   const { getLocalTime, getLocationTime, loading: timeLoading } = useTime();
   const { getLocalWeather, getLocationWeather, loading: weatherLoading } = useWeather();
@@ -91,7 +97,7 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
     }
   }, [imageUrl, setMessages]);
 
-  const handleTokenInfo = async (address: string) => {
+  const handleTokenInfo = async (address: string): Promise<string> => {
     const content = await fetchTokenInfo(address);
     if (content) {
       setMessages((prev) => [
@@ -99,26 +105,10 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
         { role: 'system', content },
       ]);
     }
+    return content ?? 'No token information available.';
   };
 
-  const handleTickerInfo = async (symbol: string) => {
-    try {
-      const response = await fetch(`/api/ticker?symbol=${symbol}`);
-      const data = await response.json();
-      setMessages((prev) => [
-        ...prev,
-        { role: 'system', content: data.content },
-      ]);
-    } catch (error) {
-      console.error('Error fetching ticker info:', error);
-      setMessages((prev) => [
-        ...prev,
-        { role: 'system', content: 'Failed to fetch token information. Please try again.' },
-      ]);
-    }
-  };
-
-  const handleTrendingTokens = async () => {
+  const handleTrendingTokens = async (): Promise<string> => {
     const content = await fetchTrendingTokens();
     if (content) {
       setMessages((prev) => [
@@ -126,9 +116,10 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
         { role: 'system', content },
       ]);
     }
+    return content ?? 'No trending tokens available.';
   };
 
-  const handleLatestPairs = async () => {
+  const handleLatestPairs = async (): Promise<string> => {
     const content = await fetchLatestPairs();
     if (content) {
       setMessages((prev) => [
@@ -136,9 +127,10 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
         { role: 'system', content },
       ]);
     }
+    return content ?? 'No latest pairs available.';
   };
 
-  const handleBoostedTokens = async () => {
+  const handleBoostedTokens = async (): Promise<string> => {
     const content = await fetchBoostedTokens();
     if (content) {
       setMessages((prev) => [
@@ -146,9 +138,10 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
         { role: 'system', content },
       ]);
     }
+    return content ?? 'No boosted tokens available.';
   };
 
-  const handleGeckoTop = async () => {
+  const handleGeckoTop = async (): Promise<string> => {
     const content = await fetchTopCoins();
     if (content) {
       setMessages((prev) => [
@@ -156,9 +149,10 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
         { role: 'system', content },
       ]);
     }
+    return content ?? 'No top coins data available.';
   };
 
-  const handleGeckoTrending = async () => {
+  const handleGeckoTrending = async (): Promise<string> => {
     const content = await fetchTrendingCoins();
     if (content) {
       setMessages((prev) => [
@@ -166,6 +160,7 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
         { role: 'system', content },
       ]);
     }
+    return content ?? 'No trending coins data available.';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -173,134 +168,36 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
     if (!input.trim()) return;
 
     if (input.startsWith('/')) {
-      const [cmd, ...args] = input.slice(1).split(' ');
-      const prompt = args.join(' ');
-      
-      if (cmd.toLowerCase() === 'imagine' || cmd.toLowerCase() === 'meme') {
-        if (prompt) {
-          handleCommand({ 
-            command: input.slice(1), 
-            setMessages, 
-            setLoading, 
-            generateImage, 
-            generateMeme 
-          });
-        } else {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'system',
-              content: `Please provide a prompt for the /${cmd} command.`,
-            },
-          ]);
-        }
-      } else if (cmd.toLowerCase() === 'time') {
-        handleCommand({
-          command: input.slice(1),
-          setMessages,
-          getLocalTime,
-          getLocationTime
-        });
-      } else if (cmd.toLowerCase() === 'weather') {
-        handleCommand({
-          command: input.slice(1),
-          setMessages,
-          getLocalWeather,
-          getLocationWeather
-        });
-      } else if (cmd.toLowerCase() === 'gecko') {
-        handleCommand({
-          command: input.slice(1),
-          setMessages,
-          fetchGeckoTop: handleGeckoTop,
-          fetchGeckoTrending: handleGeckoTrending
-        });
-      } else if (cmd.toLowerCase() === 'chart') {
-        handleCommand({
-          command: input.slice(1),
-          setMessages,
-          getChart
-        });
-      } else if (cmd.toLowerCase() === 'dex') {
-        if (!prompt) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'system',
-              content: 'Please specify a dex command: latest, boosted, or trending',
-            },
-          ]);
-          return;
-        }
-
-        const [subCmd] = prompt.split(' ');
-        
-        // Add user's command to chat history
-        setMessages((prev) => [...prev, { role: 'user', content: input }]);
-        
-        switch (subCmd.toLowerCase()) {
-          case 'latest':
-            await handleLatestPairs();
-            break;
-          case 'boosted':
-            await handleBoostedTokens();
-            break;
-          case 'trending':
-            await handleTrendingTokens();
-            break;
-          default:
-            setMessages((prev) => [
-              ...prev,
-              {
-                role: 'system',
-                content: 'Unknown dex command. Available commands: latest, boosted, trending',
-              },
-            ]);
-        }
-      } else if (cmd.toLowerCase() === 'ca') {
-        if (prompt) {
-          setMessages((prev) => [...prev, { role: 'user', content: input }]);
-          await handleTokenInfo(prompt);
-        } else {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'system',
-              content: 'Please provide a token contract address.',
-            },
-          ]);
-        }
-      } else if (cmd.toLowerCase() === 'ticker') {
-        if (prompt) {
-          setMessages((prev) => [...prev, { role: 'user', content: input }]);
-          await handleTickerInfo(prompt);
-        } else {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'system',
-              content: 'Please provide a token symbol (e.g., /ticker bonk).',
-            },
-          ]);
-        }
-      } else {
-        handleCommand({ command: input.slice(1), setMessages });
-      }
+      handleCommand({
+        command: input.slice(1),
+        setMessages,
+        setLoading,
+        generateImage,
+        generateMeme,
+        fetchGeckoTop: handleGeckoTop,
+        fetchGeckoTrending: handleGeckoTrending,
+        getLocalTime,
+        getLocationTime,
+        getLocalWeather,
+        getLocationWeather,
+        getChart,
+        handleLatestPairs,
+        handleBoostedTokens,
+        handleTrendingTokens,
+        handleTokenInfo
+      });
       setInput('');
-      // Refocus after command execution
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
     } else {
       setLoading(true);
       setMessages((prev) => [...prev, { role: 'user', content: input }]);
       setInput('');
       await sendToOpenAI(input);
       setLoading(false);
-      // Refocus after OpenAI response
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
+    }
+    
+    // Refocus after command execution
+    if (inputRef.current) {
+      inputRef.current.focus();
     }
   };
 

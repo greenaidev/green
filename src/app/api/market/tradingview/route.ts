@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 
+/**
+ * GET endpoint for TradingView chart symbol processing
+ * Converts user input symbols to valid TradingView pairs
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const symbol = searchParams.get('symbol');
@@ -16,7 +20,7 @@ export async function GET(request: Request) {
     const base = cleanSymbol.slice(0, -3);
     const quote = cleanSymbol.slice(-3);
     
-    // Common quote currencies
+    // Common quote currencies mapping
     const quoteMap: { [key: string]: string } = {
       'USD': 'USDT',  // Map USD to USDT for Binance
       'BTC': 'BTC',

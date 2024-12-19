@@ -1,59 +1,85 @@
 import { useState } from 'react';
 
+interface DexScreenerResponse {
+  content: string;
+  error?: string;
+}
+
 export default function useDexScreener() {
   const [loading, setLoading] = useState(false);
 
-  const fetchTokenInfo = async (address: string) => {
+  const handleDexScreenerResponse = async (response: Response): Promise<string> => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data: DexScreenerResponse = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    return data.content;
+  };
+
+  const fetchTokenInfo = async (input: string): Promise<string> => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/dexscreener?address=${address}`);
+      // Clean the input - remove $ if present and trim
+      const cleanInput = input.replace('$', '').trim();
+      
+      // Check if input looks like a contract address (rough check for length and hex)
+      const isAddress = /^[A-Za-z0-9]{32,}$/.test(cleanInput);
+      
+      // Construct the API URL based on input type
+      const queryType = isAddress ? 'token' : 'symbol';
+      console.log('Fetching token info:', { queryType, cleanInput });
+      
+      const response = await fetch(`/api/market/dex?type=${queryType}&address=${cleanInput}`);
       const data = await response.json();
-      return data.content;
+      return data.content || '❌ No token information found.';
     } catch (error) {
       console.error('Error fetching token info:', error);
-      return 'Failed to fetch token information. Please try again.';
+      return `❌ ${error instanceof Error ? error.message : 'Failed to fetch token information. Please try again.'}`;
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchTrendingTokens = async () => {
+  const fetchTrendingTokens = async (): Promise<string> => {
     setLoading(true);
     try {
-      const response = await fetch('/api/trending');
-      const data = await response.json();
-      return data.content;
+      console.log('Fetching trending tokens...');
+      const response = await fetch('/api/market/dex?type=trending');
+      return await handleDexScreenerResponse(response);
     } catch (error) {
       console.error('Error fetching trending tokens:', error);
-      return 'Failed to fetch trending tokens. Please try again.';
+      return `❌ ${error instanceof Error ? error.message : 'Failed to fetch trending tokens. Please try again.'}`;
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchLatestPairs = async () => {
+  const fetchLatestPairs = async (): Promise<string> => {
     setLoading(true);
     try {
-      const response = await fetch('/api/latest');
-      const data = await response.json();
-      return data.content;
+      console.log('Fetching latest pairs...');
+      const response = await fetch('/api/market/dex?type=latest');
+      return await handleDexScreenerResponse(response);
     } catch (error) {
       console.error('Error fetching latest pairs:', error);
-      return 'Failed to fetch latest pairs. Please try again.';
+      return `❌ ${error instanceof Error ? error.message : 'Failed to fetch latest pairs. Please try again.'}`;
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchBoostedTokens = async () => {
+  const fetchBoostedTokens = async (): Promise<string> => {
     setLoading(true);
     try {
-      const response = await fetch('/api/boosted');
-      const data = await response.json();
-      return data.content;
+      console.log('Fetching boosted tokens...');
+      const response = await fetch('/api/market/dex?type=boosted');
+      return await handleDexScreenerResponse(response);
     } catch (error) {
       console.error('Error fetching boosted tokens:', error);
-      return 'Failed to fetch boosted tokens. Please try again.';
+      return `❌ ${error instanceof Error ? error.message : 'Failed to fetch boosted tokens. Please try again.'}`;
     } finally {
       setLoading(false);
     }

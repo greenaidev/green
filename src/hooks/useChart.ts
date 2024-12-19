@@ -11,28 +11,24 @@ const useChart = (): ChartHookReturn => {
   const getChart = async (symbol: string): Promise<string> => {
     try {
       setLoading(true);
-      const cleanSymbol = symbol.toUpperCase().replace(/[^A-Z]/g, '');
-      const base = cleanSymbol.slice(0, -3);
-      const quote = cleanSymbol.slice(-3);
+      const response = await fetch(`/api/market/tradingview?symbol=${symbol}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch chart data');
+      }
+      const data = await response.json();
       
-      // Common quote currencies
-      const quoteMap: { [key: string]: string } = {
-        'USD': 'USDT',  // Map USD to USDT for Binance
-        'BTC': 'BTC',
-        'ETH': 'ETH',
-      };
-
-      const mappedQuote = quoteMap[quote] || quote;
-      const pair = `${base}${mappedQuote}`;
+      if (!data.symbol) {
+        throw new Error('Invalid symbol response');
+      }
 
       return `<div class="tradingview-chart-container">
-  <div id="tradingview_${cleanSymbol}"></div>
+  <div id="tradingview_${data.symbol}"></div>
   <script type="text/javascript">
     new TradingView.MediumWidget({
-      "container_id": "tradingview_${cleanSymbol}",
+      "container_id": "tradingview_${data.symbol}",
       "symbols": [
         [
-          "${pair}|1D"
+          "${data.symbol}|1D"
         ]
       ],
       "chartOnly": false,

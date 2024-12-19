@@ -10,13 +10,17 @@ interface CommandHandlerProps {
   setLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   generateImage?: (prompt: string) => Promise<void>;
   generateMeme?: (prompt: string) => Promise<void>;
-  fetchGeckoTop?: () => Promise<void>;
-  fetchGeckoTrending?: () => Promise<void>;
+  fetchGeckoTop?: () => Promise<string>;
+  fetchGeckoTrending?: () => Promise<string>;
   getLocalTime?: () => Promise<string>;
   getLocationTime?: (location: string) => Promise<string>;
   getLocalWeather?: () => Promise<string>;
   getLocationWeather?: (location: string) => Promise<string>;
   getChart?: (symbol: string) => Promise<string>;
+  handleLatestPairs?: () => Promise<string>;
+  handleBoostedTokens?: () => Promise<string>;
+  handleTrendingTokens?: () => Promise<string>;
+  handleTokenInfo?: (address: string) => Promise<string>;
 }
 
 export const handleCommand = async ({
@@ -32,13 +36,16 @@ export const handleCommand = async ({
   getLocalWeather,
   getLocationWeather,
   getChart,
+  handleLatestPairs,
+  handleBoostedTokens,
+  handleTrendingTokens,
+  handleTokenInfo,
 }: CommandHandlerProps) => {
   const [cmd, ...args] = command.split(' ');
   const prompt = args.join(' ');
-  const fullCommand = `/${command}`;
 
   // Add user's command to chat history first
-  setMessages((prev) => [...prev, { role: 'user', content: fullCommand }]);
+  setMessages((prev) => [...prev, { role: 'user', content: `/${command}` }]);
 
   switch (cmd.toLowerCase()) {
     case 'weather':
@@ -107,10 +114,18 @@ export const handleCommand = async ({
     case 'gecko':
       if (!prompt) {
         if (fetchGeckoTop) {
-          await fetchGeckoTop();
+          const content = await fetchGeckoTop();
+          setMessages((prev) => [
+            ...prev,
+            { role: 'system', content },
+          ]);
         }
       } else if (prompt.toLowerCase() === 'trending' && fetchGeckoTrending) {
-        await fetchGeckoTrending();
+        const content = await fetchGeckoTrending();
+        setMessages((prev) => [
+          ...prev,
+          { role: 'system', content },
+        ]);
       } else {
         setMessages((prev) => [
           ...prev,
@@ -145,6 +160,40 @@ export const handleCommand = async ({
           type: 'chart'
         },
       ]);
+      break;
+    case 'ca':
+    case 'ticker':
+    case 'symbol':
+      if (!prompt) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'system',
+            content: `❌ Please provide a ${cmd === 'ca' ? 'contract address' : 'token symbol'}`,
+          },
+        ]);
+        return;
+      }
+      if (handleTokenInfo) {
+        try {
+          const content = await handleTokenInfo(prompt);
+          setMessages((prev) => [
+            ...prev,
+            { role: 'system', content },
+          ]);
+        } catch (error) {
+          console.error('Error handling token info:', error);
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: 'system',
+              content: `❌ Failed to fetch token information: ${
+                error instanceof Error ? error.message : 'Unknown error'
+              }`,
+            },
+          ]);
+        }
+      }
       break;
     case 'help':
       setMessages((prev) => [
@@ -213,6 +262,70 @@ Type \`/help\` to see all available commands.
 Data provided by DexScreener, CoinGecko & OpenWeather • Built with ❤️ using Next.js`,
         },
       ]);
+      break;
+    case 'dex':
+      if (!prompt) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'system',
+            content: '❌ Please specify a dex command: latest, boosted, or trending',
+          },
+        ]);
+        return;
+      }
+
+      const [subCmd] = prompt.split(' ');
+      
+      try {
+        let content: string;
+        switch (subCmd.toLowerCase()) {
+          case 'latest':
+            if (handleLatestPairs) {
+              content = await handleLatestPairs();
+              setMessages((prev) => [
+                ...prev,
+                { role: 'system', content },
+              ]);
+            }
+            break;
+          case 'boosted':
+            if (handleBoostedTokens) {
+              content = await handleBoostedTokens();
+              setMessages((prev) => [
+                ...prev,
+                { role: 'system', content },
+              ]);
+            }
+            break;
+          case 'trending':
+            if (handleTrendingTokens) {
+              content = await handleTrendingTokens();
+              setMessages((prev) => [
+                ...prev,
+                { role: 'system', content },
+              ]);
+            }
+            break;
+          default:
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: 'system',
+                content: '❌ Available dex commands: latest, boosted, trending',
+              },
+            ]);
+        }
+      } catch (error) {
+        console.error('Error handling dex command:', error);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'system',
+            content: `❌ Failed to execute dex command: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ]);
+      }
       break;
     default:
       setMessages((prev) => [

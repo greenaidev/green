@@ -9,7 +9,7 @@ const useDalle = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('/api/imagine', {
+      const response = await fetch('/api/dalle/image', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ const useDalle = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('/api/meme', {
+      const response = await fetch('/api/dalle/meme', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
