@@ -5,11 +5,13 @@ import rehypeRaw from 'rehype-raw';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import Image from 'next/image';
+import TradingViewChart from '../TradingViewChart';
 
 interface MessageBlockProps {
   user: boolean;
   content: string;
   tokens?: number;
+  type?: string;
 }
 
 const customStyle = {
@@ -27,7 +29,7 @@ const customStyle = {
   },
 };
 
-const MessageBlock: React.FC<MessageBlockProps> = ({ user, content, tokens }) => {
+const MessageBlock: React.FC<MessageBlockProps> = ({ user, content, tokens, type }) => {
   const [copyStatus, setCopyStatus] = useState<{ [key: string]: boolean }>({});
 
   const handleCopy = async (text: string, key: string) => {
@@ -55,7 +57,9 @@ const MessageBlock: React.FC<MessageBlockProps> = ({ user, content, tokens }) =>
       <div className="msg-top">
         <div className={`msg-icon ${user ? 'user' : 'system'}`}></div>
         <div className="msg-content markdown-container">
-          {isImageUrl(content) ? (
+          {type === 'chart' ? (
+            <TradingViewChart symbol={content.split(' ')[1]} />
+          ) : isImageUrl(content) ? (
             <div className="message-image-container" style={{ position: 'relative', width: '600px', height: '600px', margin: '20px auto' }}>
               <Image
                 src={content}

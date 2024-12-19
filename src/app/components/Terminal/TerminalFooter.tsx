@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { handleCommand } from '../../../utils/commandHandler';
+import { handleCommand } from '../../../app/utils/commandHandler';
 import useDalle from '../../../hooks/useDalle';
 import useDexScreener from '../../../hooks/useDexScreener';
 import useGecko from '../../../hooks/useGecko';
 import useTime from '../../../hooks/useTime';
 import useWeather from '../../../hooks/useWeather';
+import useChart from '../../../hooks/useChart';
 
 interface Message {
   role: string;
@@ -28,6 +29,7 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
   const { fetchTopCoins, fetchTrendingCoins, loading: geckoLoading } = useGecko();
   const { getLocalTime, getLocationTime, loading: timeLoading } = useTime();
   const { getLocalWeather, getLocationWeather, loading: weatherLoading } = useWeather();
+  const { getChart, loading: chartLoading } = useChart();
 
   // Focus input on mount
   useEffect(() => {
@@ -43,7 +45,7 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
     }
   }, [loading, imageLoading, tokenLoading, geckoLoading, timeLoading, weatherLoading]);
 
-  const isLoading = loading || imageLoading || tokenLoading || geckoLoading || timeLoading || weatherLoading;
+  const isLoading = loading || imageLoading || tokenLoading || geckoLoading || timeLoading || weatherLoading || chartLoading;
 
   useEffect(() => {
     if (isLoading) {
@@ -213,6 +215,12 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
           fetchGeckoTop: handleGeckoTop,
           fetchGeckoTrending: handleGeckoTrending
         });
+      } else if (cmd.toLowerCase() === 'chart') {
+        handleCommand({
+          command: input.slice(1),
+          setMessages,
+          getChart
+        });
       } else if (cmd.toLowerCase() === 'dex') {
         if (!prompt) {
           setMessages((prev) => [
@@ -296,10 +304,10 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e as unknown as React.FormEvent);
+      handleSubmit(e.nativeEvent as unknown as React.FormEvent);
     }
   };
 

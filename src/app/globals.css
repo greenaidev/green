@@ -28,6 +28,31 @@
   --font-inactive: #555;
 }
 
+/* TradingView Chart Styles */
+.tradingview-chart-container {
+  width: 100%;
+  min-height: 400px;
+  height: 400px;
+  background-color: var(--bg-color-dark);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: 0;
+  padding: 4px;
+  margin: 16px 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.tradingview-chart-container > div {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 400px;
+}
+
+.tradingview-chart {
+  width: 100%;
+  height: 100%;
+}
+
 /* Scrollbar Styles */
 ::-webkit-scrollbar {
   width: 6px;
@@ -754,4 +779,44 @@ button:hover {
 
 .message-image:hover {
   transform: scale(1.02);
+}
+
+/* TradingView Widget Styles */
+.tradingview-widget-container {
+  width: 96%;
+  height: 60vh;
+  background-color: var(--bg-color-dark);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: 0;
+  padding: 4px;
+  margin: 16px auto;
+  position: relative;
+}
+
+.tradingview-chart {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+}
+
+.tradingview-widget-copyright {
+  font-size: var(--font-size-text);
+  color: var(--font-inactive);
+  text-align: right;
+  padding: 8px;
+  height: 32px;
+}
+
+.tradingview-widget-copyright a {
+  color: var(--font-inactive);
+  text-decoration: none;
+  transition: color var(--transition-duration);
+}
+
+.tradingview-widget-copyright a:hover {
+  color: var(--font-color);
+}
+
+.tradingview-widget-copyright .blue-text {
+  color: var(--font-color);
 }

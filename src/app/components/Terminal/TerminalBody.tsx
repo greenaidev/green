@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import MessageBlock from './MessageBlock';
 
 interface TerminalBodyProps {
-  messages: { role: string; content: string; tokens?: number }[];
+  messages: { role: string; content: string; tokens?: number; type?: string }[];
 }
 
 const TerminalBody: React.FC<TerminalBodyProps> = ({ messages }) => {
@@ -23,6 +23,7 @@ const TerminalBody: React.FC<TerminalBodyProps> = ({ messages }) => {
             user={message.role === 'user'}
             content={message.content}
             tokens={message.tokens}
+            type={message.type}
           />
         ))}
       </div>

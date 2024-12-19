@@ -16,6 +16,7 @@ interface CommandHandlerProps {
   getLocationTime?: (location: string) => Promise<string>;
   getLocalWeather?: () => Promise<string>;
   getLocationWeather?: (location: string) => Promise<string>;
+  getChart?: (symbol: string) => Promise<string>;
 }
 
 export const handleCommand = async ({
@@ -30,6 +31,7 @@ export const handleCommand = async ({
   getLocationTime,
   getLocalWeather,
   getLocationWeather,
+  getChart,
 }: CommandHandlerProps) => {
   const [cmd, ...args] = command.split(' ');
   const prompt = args.join(' ');
@@ -119,6 +121,31 @@ export const handleCommand = async ({
         ]);
       }
       break;
+    case 'chart':
+      if (!prompt) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'system',
+            content: '❌ Please specify a trading pair (e.g., /chart btcusd)',
+          },
+        ]);
+        return;
+      }
+
+      if (getChart) {
+        await getChart(prompt.toLowerCase());
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { 
+          role: 'system', 
+          content: `/chart ${prompt.toLowerCase()}`,
+          type: 'chart'
+        },
+      ]);
+      break;
     case 'help':
       setMessages((prev) => [
         ...prev,
@@ -146,6 +173,7 @@ export const handleCommand = async ({
 - \`/dex boosted\` - Show top 50 most boosted tokens
 - \`/gecko\` - Show top 50 coins by market cap
 - \`/gecko trending\` - Show trending coins on CoinGecko
+- \`/chart <pair>\` - Show TradingView chart (e.g., /chart btcusd)
 
 ## System Commands
 - \`/clear\` - Clear the chat history
@@ -175,6 +203,7 @@ Welcome to the terminal! Use commands to interact with the system.`,
 - DexScreener for market data
 - CoinGecko for crypto market data
 - OpenWeather for weather data
+- TradingView for charts
 - Markdown for content formatting
 - Prism.js for syntax highlighting
 
