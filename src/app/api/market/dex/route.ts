@@ -302,6 +302,7 @@ export async function GET(request: Request) {
     switch (type) {
       case 'symbol':
       case 'ticker':
+      case 'token':
       case 'ca':
         if (!address) {
           return NextResponse.json({ 
@@ -310,10 +311,11 @@ export async function GET(request: Request) {
           }, { status: 400 });
         }
 
-        // Use search endpoint for both symbol and address lookups
+        // Single API call for all token lookup types
         response = await fetch(`https://api.dexscreener.com/latest/dex/search?q=${address}`, {
           headers: { 'Accept': 'application/json' }
         });
+        
         if (!response.ok) {
           throw new Error(`Failed to fetch token data: ${response.status} ${response.statusText}`);
         }
@@ -341,7 +343,7 @@ export async function GET(request: Request) {
         }
 
         formattedData = formatTokenData(filteredPairs[0]);
-        break;
+        return NextResponse.json({ content: formattedData });
 
       case 'trending':
         response = await fetch('https://api.dexscreener.com/token-boosts/top/v1', {

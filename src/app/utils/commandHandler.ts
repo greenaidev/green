@@ -23,6 +23,13 @@ interface CommandHandlerProps {
   handleTokenInfo?: (address: string) => Promise<string>;
 }
 
+// At the top of the file, add a command alias mapping
+const COMMAND_ALIASES: { [key: string]: string } = {
+  'ca': 'token',
+  'ticker': 'token',
+  'symbol': 'token',
+};
+
 export const handleCommand = async ({
   command,
   setMessages,
@@ -44,10 +51,10 @@ export const handleCommand = async ({
   const [cmd, ...args] = command.split(' ');
   const prompt = args.join(' ');
 
-  // Add user's command to chat history first
-  setMessages((prev) => [...prev, { role: 'user', content: `/${command}` }]);
+  // Resolve the command alias to its main command
+  const resolvedCmd = COMMAND_ALIASES[cmd.toLowerCase()] || cmd.toLowerCase();
 
-  switch (cmd.toLowerCase()) {
+  switch (resolvedCmd) {
     case 'weather':
       if (!prompt && getLocalWeather) {
         const weatherInfo = await getLocalWeather();
@@ -161,38 +168,23 @@ export const handleCommand = async ({
         },
       ]);
       break;
-    case 'ca':
-    case 'ticker':
-    case 'symbol':
+    case 'token':
       if (!prompt) {
         setMessages((prev) => [
           ...prev,
           {
             role: 'system',
-            content: `❌ Please provide a ${cmd === 'ca' ? 'contract address' : 'token symbol'}`,
+            content: '❌ Please provide a token address or symbol',
           },
         ]);
         return;
       }
       if (handleTokenInfo) {
-        try {
-          const content = await handleTokenInfo(prompt);
-          setMessages((prev) => [
-            ...prev,
-            { role: 'system', content },
-          ]);
-        } catch (error) {
-          console.error('Error handling token info:', error);
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'system',
-              content: `❌ Failed to fetch token information: ${
-                error instanceof Error ? error.message : 'Unknown error'
-              }`,
-            },
-          ]);
-        }
+        const content = await handleTokenInfo(prompt);
+        setMessages((prev) => [
+          ...prev,
+          { role: 'system', content },
+        ]);
       }
       break;
     case 'help':
@@ -322,7 +314,7 @@ Data provided by DexScreener, CoinGecko & OpenWeather • Built with ❤️ usin
           ...prev,
           {
             role: 'system',
-            content: `❌ Failed to execute dex command: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            content: `Failed to execute dex command: ${error instanceof Error ? error.message : 'Unknown error'}`,
           },
         ]);
       }

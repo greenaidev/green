@@ -1,9 +1,11 @@
 import { useState } from 'react';
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 interface DexScreenerResponse {
   content: string;
   error?: string;
 }
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export default function useDexScreener() {
   const [loading, setLoading] = useState(false);
@@ -12,7 +14,7 @@ export default function useDexScreener() {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    const data: DexScreenerResponse = await response.json();
+    const data = await response.json();
     if (data.error) {
       throw new Error(data.error);
     }
@@ -33,8 +35,7 @@ export default function useDexScreener() {
       console.log('Fetching token info:', { queryType, cleanInput });
       
       const response = await fetch(`/api/market/dex?type=${queryType}&address=${cleanInput}`);
-      const data = await response.json();
-      return data.content || '❌ No token information found.';
+      return await handleDexScreenerResponse(response);
     } catch (error) {
       console.error('Error fetching token info:', error);
       return `❌ ${error instanceof Error ? error.message : 'Failed to fetch token information. Please try again.'}`;

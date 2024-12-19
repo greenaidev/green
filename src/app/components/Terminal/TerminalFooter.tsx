@@ -99,67 +99,31 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
 
   const handleTokenInfo = async (address: string): Promise<string> => {
     const content = await fetchTokenInfo(address);
-    if (content) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'system', content },
-      ]);
-    }
     return content ?? 'No token information available.';
   };
 
   const handleTrendingTokens = async (): Promise<string> => {
     const content = await fetchTrendingTokens();
-    if (content) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'system', content },
-      ]);
-    }
     return content ?? 'No trending tokens available.';
   };
 
   const handleLatestPairs = async (): Promise<string> => {
     const content = await fetchLatestPairs();
-    if (content) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'system', content },
-      ]);
-    }
     return content ?? 'No latest pairs available.';
   };
 
   const handleBoostedTokens = async (): Promise<string> => {
     const content = await fetchBoostedTokens();
-    if (content) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'system', content },
-      ]);
-    }
     return content ?? 'No boosted tokens available.';
   };
 
   const handleGeckoTop = async (): Promise<string> => {
     const content = await fetchTopCoins();
-    if (content) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'system', content },
-      ]);
-    }
     return content ?? 'No top coins data available.';
   };
 
   const handleGeckoTrending = async (): Promise<string> => {
     const content = await fetchTrendingCoins();
-    if (content) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'system', content },
-      ]);
-    }
     return content ?? 'No trending coins data available.';
   };
 
@@ -168,6 +132,9 @@ const TerminalFooter = ({ sendToOpenAI, setMessages }: TerminalFooterProps) => {
     if (!input.trim()) return;
 
     if (input.startsWith('/')) {
+      // Always show the command that was typed
+      setMessages((prev) => [...prev, { role: 'user', content: input }]);
+      
       handleCommand({
         command: input.slice(1),
         setMessages,
