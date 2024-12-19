@@ -1,6 +1,8 @@
-export interface Message {
+interface Message {
   role: string;
   content: string;
   tokens?: number;
-  type?: string;
-} 
+  context?: boolean;
+}
+
+export type { Message }; 

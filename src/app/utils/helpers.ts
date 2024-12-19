@@ -1,8 +1,11 @@
 // utils/helpers.ts
 
 import nacl from "tweetnacl";
-import { Connection, PublicKey } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID, getAccount, getMint } from "@solana/spl-token";
+import { PublicKey } from "@solana/web3.js";
+import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+
+// Define RPCParam type once at the top of the file
+type RPCParam = string | number | boolean | Record<string, unknown>;
 
 // const RPC_ENDPOINT = process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.devnet.solana.com";
 
@@ -48,20 +51,32 @@ export async function checkTokenBalance(
     return false;
   }
 
-  async function tryConnection(attempt: number): Promise<Connection> {
-    const endpoints = [
-      process.env.NEXT_PUBLIC_RPC_ENDPOINT || "https://api.devnet.solana.com",
-      "https://api.devnet.solana.com",
-      "https://devnet.helius-rpc.com/?api-key=30b34838-b112-4e61-a486-72db281539e7"
-    ];
-
-    const endpoint = endpoints[attempt % endpoints.length];
-    console.log(`Attempting connection with endpoint (attempt ${attempt + 1}):`, endpoint);
-    
-    return new Connection(endpoint, {
-      commitment: 'confirmed',
-      confirmTransactionInitialTimeout: 30000,
-    });
+  async function makeRPCRequest(method: string, params: RPCParam[], isServer = false) {
+    try {
+      const url = isServer ? process.env.RPC_ENDPOINT! : '/api/rpc';
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method,
+          params,
+        }),
+      });
+      
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error.message || 'RPC request failed');
+      }
+      return isServer ? data : data.result;
+    } catch (error) {
+      console.error('RPC request failed:', error);
+      throw error;
+    }
   }
 
   let lastError: Error | null = null;
@@ -80,39 +95,34 @@ export async function checkTokenBalance(
         return false;
       }
 
-      // Create connection with retry logic
-      const connection = await tryConnection(attempt);
-
-      // Test connection first
+      // Test connection
       try {
-        await connection.getLatestBlockhash();
+        await makeRPCRequest('getLatestBlockhash', [], true);
       } catch (err) {
         console.error('Connection test failed:', err);
         lastError = err as Error;
         continue;
       }
 
-      // Find token accounts
-      const tokenAccounts = await connection.getTokenAccountsByOwner(wallet, {
-        programId: TOKEN_PROGRAM_ID,
-      });
+      // Get token accounts
+      const tokenAccounts = await makeRPCRequest('getTokenAccountsByOwner', [
+        wallet.toBase58(),
+        { programId: TOKEN_PROGRAM_ID.toBase58() },
+        { encoding: 'jsonParsed', commitment: 'confirmed' }
+      ], true);
 
-      console.log('Found token accounts:', tokenAccounts.value.length);
+      console.log('Found token accounts:', tokenAccounts.result.value.length);
 
-      // Find the specific token account and check balance
-      for (const ta of tokenAccounts.value) {
+      // Check each token account
+      for (const ta of tokenAccounts.result.value) {
         try {
-          const accountData = await getAccount(connection, ta.pubkey);
+          const accountInfo = await makeRPCRequest('getTokenAccountBalance', [ta.pubkey], true);
           
-          if (accountData.mint.equals(mint)) {
-            const mintInfo = await getMint(connection, mint);
-            
-            // Convert balance to decimal considering token decimals
-            const decimals = mintInfo.decimals;
-            const rawBalance = Number(accountData.amount);
+          if (ta.account.data.parsed.info.mint === mint.toBase58()) {
+            const decimals = accountInfo.result.value.decimals;
+            const rawBalance = Number(accountInfo.result.value.amount);
             const actualBalance = rawBalance / Math.pow(10, decimals);
             
-            // Convert required amount to raw token amount
             const rawRequiredAmount = requiredAmount * Math.pow(10, decimals);
             
             console.log('Token balance details:', {
@@ -142,7 +152,6 @@ export async function checkTokenBalance(
         console.error('All attempts failed. Last error:', lastError);
         return false;
       }
-      // Increase wait time between retries
       await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)));
       continue;
     }
@@ -150,4 +159,43 @@ export async function checkTokenBalance(
 
   console.error('All attempts failed. Last error:', lastError);
   return false;
+}
+
+export const getReadmeContent = async (): Promise<string> => {
+  try {
+    const response = await fetch('/api/docs');
+    const data = await response.json();
+    return data.content;
+  } catch (error) {
+    console.error('Error fetching README:', error);
+    return '# Documentation\n\nError loading documentation. Please try again later.';
+  }
+};
+
+export async function makeRPCRequest(method: string, params: RPCParam[], isServer = false) {
+  try {
+    const url = isServer ? process.env.RPC_ENDPOINT! : '/api/rpc';
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method,
+        params,
+      }),
+    });
+    
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error.message || 'RPC request failed');
+    }
+    return isServer ? data : data.result;
+  } catch (error) {
+    console.error('RPC request failed:', error);
+    throw error;
+  }
 }

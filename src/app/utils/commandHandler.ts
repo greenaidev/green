@@ -1,8 +1,5 @@
-interface Message {
-  role: string;
-  content: string;
-  tokens?: number;
-}
+import { getReadmeContent } from './helpers';
+import { Message } from '@/types/message';
 
 interface CommandHandlerProps {
   command: string;
@@ -119,26 +116,35 @@ export const handleCommand = async ({
       setMessages([]);
       break;
     case 'gecko':
-      if (!prompt) {
-        if (fetchGeckoTop) {
+      try {
+        if (prompt === 'trending' && fetchGeckoTrending) {
+          const content = await fetchGeckoTrending();
+          setMessages((prev) => [
+            ...prev,
+            { 
+              role: 'system',
+              content,
+              context: true  // Mark market data for AI context
+            },
+          ]);
+        } else if (fetchGeckoTop) {
           const content = await fetchGeckoTop();
           setMessages((prev) => [
             ...prev,
-            { role: 'system', content },
+            { 
+              role: 'system',
+              content,
+              context: true  // Mark market data for AI context
+            },
           ]);
         }
-      } else if (prompt.toLowerCase() === 'trending' && fetchGeckoTrending) {
-        const content = await fetchGeckoTrending();
-        setMessages((prev) => [
-          ...prev,
-          { role: 'system', content },
-        ]);
-      } else {
+      } catch (err) {
+        console.error('Error fetching CoinGecko data:', err);
         setMessages((prev) => [
           ...prev,
           {
             role: 'system',
-            content: 'Available gecko commands: /gecko (top 50 by market cap), /gecko trending',
+            content: `Failed to fetch CoinGecko data: ${err instanceof Error ? err.message : 'Unknown error'}`,
           },
         ]);
       }
@@ -179,11 +185,27 @@ export const handleCommand = async ({
         ]);
         return;
       }
-      if (handleTokenInfo) {
-        const content = await handleTokenInfo(prompt);
+
+      try {
+        if (handleTokenInfo) {
+          const content = await handleTokenInfo(prompt);
+          setMessages((prev) => [
+            ...prev,
+            { 
+              role: 'system',
+              content,
+              context: true  // Mark token info for AI context
+            },
+          ]);
+        }
+      } catch (err) {
+        console.error('Error fetching token info:', err);
         setMessages((prev) => [
           ...prev,
-          { role: 'system', content },
+          {
+            role: 'system',
+            content: `Failed to fetch token info: ${err instanceof Error ? err.message : 'Unknown error'}`,
+          },
         ]);
       }
       break;
@@ -195,9 +217,9 @@ export const handleCommand = async ({
           content: `# Available Commands
 
 ## Weather & Time
-- \`/weather\` - Get current local weather
+- \`/weather\` - Get current local weather (requires location access)
 - \`/weather <location>\` - Get weather for a location (e.g., /weather tokyo)
-- \`/time\` - Get current local time
+- \`/time\` - Get current time in all supported cities
 - \`/time <location>\` - Get current time for a location (e.g., /time tokyo)
 
 ## Image Generation
@@ -217,8 +239,9 @@ export const handleCommand = async ({
 - \`/chart <pair>\` - Show TradingView chart (e.g., /chart btcusd)
 
 ## System Commands
-- \`/clear\` - Clear the chat history
+- \`/reboot\` - Reboot the terminal (clear chat history)
 - \`/help\` - Show this help message
+- \`/docs\` - Show full documentation
 
 Welcome to the terminal! Use commands to interact with the system.`,
         },
@@ -277,7 +300,11 @@ Data provided by DexScreener, CoinGecko & OpenWeather • Built with ❤️ usin
               content = await handleLatestPairs();
               setMessages((prev) => [
                 ...prev,
-                { role: 'system', content },
+                { 
+                  role: 'system',
+                  content,
+                  context: true
+                },
               ]);
             }
             break;
@@ -286,7 +313,11 @@ Data provided by DexScreener, CoinGecko & OpenWeather • Built with ❤️ usin
               content = await handleBoostedTokens();
               setMessages((prev) => [
                 ...prev,
-                { role: 'system', content },
+                { 
+                  role: 'system',
+                  content,
+                  context: true
+                },
               ]);
             }
             break;
@@ -295,7 +326,11 @@ Data provided by DexScreener, CoinGecko & OpenWeather • Built with ❤️ usin
               content = await handleTrendingTokens();
               setMessages((prev) => [
                 ...prev,
-                { role: 'system', content },
+                { 
+                  role: 'system',
+                  content,
+                  context: true
+                },
               ]);
             }
             break;
@@ -308,16 +343,45 @@ Data provided by DexScreener, CoinGecko & OpenWeather • Built with ❤️ usin
               },
             ]);
         }
-      } catch (error) {
-        console.error('Error handling dex command:', error);
+      } catch (err) {
+        console.error('Error handling dex command:', err);
         setMessages((prev) => [
           ...prev,
           {
             role: 'system',
-            content: `Failed to execute dex command: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            content: `Failed to execute dex command: ${err instanceof Error ? err.message : 'Unknown error'}`,
           },
         ]);
       }
+      break;
+    case 'docs':
+      try {
+        const readme = await getReadmeContent();
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'system',
+            content: readme
+          }
+        ]);
+      } catch (err) {
+        console.error('Error loading documentation:', err);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'system',
+            content: '❌ Error loading documentation. Please try again.'
+          }
+        ]);
+      }
+      break;
+    case 'reboot':
+      setMessages([
+        {
+          role: 'system',
+          content: 'System rebooted. Terminal session cleared.',
+        }
+      ]);
       break;
     default:
       setMessages((prev) => [
