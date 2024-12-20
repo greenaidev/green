@@ -6,10 +6,12 @@ import WalletConnect from "./wallet/WalletConnect";
 import Modal from "./Modal";
 import PrivateDashboard from "./PrivateDashboard";
 import TopUp from "./TopUp";
+import TelegramConnect from "./telegram/TelegramConnect";
 
 const Header = () => {
   const [isSessionValid, setIsSessionValid] = useState(false);
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
+  const [telegramConnected, setTelegramConnected] = useState(false);
   const [modalMessage, setModalMessage] = useState<string | null>(null);
   const [modalType, setModalType] = useState<"success" | "error" | "info">("info");
 
@@ -25,15 +27,35 @@ const Header = () => {
   };
 
   const shouldShowTopUp = connectedWallet && !isSessionValid;
+  const isFullyAuthenticated = isSessionValid && telegramConnected;
 
   return (
     <>
       <header className="app-header">
         <div className="logo-square"><div className="logo-circle"></div></div>
-        <WalletConnect 
-          onSessionChange={handleSessionChange} 
-          showModal={showModal}
-        />
+        <div className="auth-controls">
+          <WalletConnect 
+            onSessionChange={handleSessionChange} 
+            showModal={showModal}
+          />
+          {isSessionValid && (
+            <TelegramConnect
+              walletAddress={connectedWallet}
+              onTelegramChange={setTelegramConnected}
+              showModal={showModal}
+            />
+          )}
+          {isFullyAuthenticated && (
+            <a 
+              href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT}`}
+              className="telegram-group-button"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Join Telegram Group
+            </a>
+          )}
+        </div>
       </header>
       <main>
         {isSessionValid ? (
