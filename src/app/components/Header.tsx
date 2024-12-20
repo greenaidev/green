@@ -67,7 +67,12 @@ const Header = () => {
       console.log('Received message:', event.origin, event.data);
       
       // Parse Telegram OAuth response
-      if (event.data && typeof event.data === 'object' && event.data.event === 'auth_result') {
+      if (
+        event.origin === 'https://oauth.telegram.org' && 
+        event.data && 
+        typeof event.data === 'object' && 
+        event.data.event === 'auth_result'
+      ) {
         messageReceived = true;
         const { result } = event.data;
         
@@ -95,13 +100,13 @@ const Header = () => {
         } catch (error) {
           console.error('Telegram auth error:', error);
           showModal("Connection error. Please try again.", "error");
+        } finally {
+          setIsConnecting(false);
+          window.removeEventListener('message', handleMessage);
+          if (!popupClosed && popup) {
+            popup.close();
+          }
         }
-
-        window.removeEventListener('message', handleMessage);
-        if (!popupClosed && popup) {
-          popup.close();
-        }
-        setIsConnecting(false);
       }
     };
 
