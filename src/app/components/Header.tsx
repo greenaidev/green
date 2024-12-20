@@ -16,6 +16,12 @@ interface TelegramUser {
   auth_date: number;
 }
 
+interface TelegramAuthResult {
+  event: string;
+  result: TelegramUser;
+  origin: string;
+}
+
 const Header = () => {
   const [isSessionValid, setIsSessionValid] = useState(false);
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
@@ -35,6 +41,39 @@ const Header = () => {
     setModalType(type);
   }, []);
 
+  // Handle the actual OAuth data processing
+  const handleTelegramOAuth = useCallback(async (authData: TelegramAuthResult) => {
+    try {
+      const response = await fetch('/api/telegram/oauth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...authData.result,
+          walletAddress: connectedWallet
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setIsTelegramConnected(true);
+        setTelegramUser(authData.result);
+        showModal("Telegram connected successfully!", "success");
+        return true;
+      } else {
+        const errorData = await response.json();
+        showModal(errorData.error || "Failed to connect Telegram", "error");
+        return false;
+      }
+    } catch (error) {
+      console.error('Telegram auth error:', error);
+      showModal("Connection error. Please try again.", "error");
+      return false;
+    }
+  }, [connectedWallet, showModal]);
+
+  // Handle the UI flow
   const handleTelegramLogin = useCallback(() => {
     if (isConnecting) return;
     setIsConnecting(true);
@@ -60,79 +99,33 @@ const Header = () => {
       return;
     }
 
-    let popupClosed = false;
-    let messageReceived = false;
-    let processingAuth = false;
+    let authProcessed = false;
 
+    // Handle incoming messages
     const handleMessage = async (event: MessageEvent) => {
       console.log('Received message:', event.origin, event.data);
       
-      // Parse Telegram OAuth response
       if (
-        !processingAuth &&
         event.origin === 'https://oauth.telegram.org' && 
-        event.data && 
-        typeof event.data === 'object' && 
-        event.data.event === 'auth_result'
+        event.data?.event === 'auth_result'
       ) {
-        processingAuth = true;
-        messageReceived = true;
-        const { result } = event.data;
+        authProcessed = true;
+        const success = await handleTelegramOAuth(event.data as TelegramAuthResult);
         
-        try {
-          const response = await fetch('/api/telegram/oauth', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              ...result,
-              walletAddress: connectedWallet
-            }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setIsTelegramConnected(true);
-            setTelegramUser(result);
-            showModal("Telegram connected successfully!", "success");
-          } else {
-            const errorData = await response.json();
-            showModal(errorData.error || "Failed to connect Telegram", "error");
-          }
-        } catch (error) {
-          console.error('Telegram auth error:', error);
-          showModal("Connection error. Please try again.", "error");
-        } finally {
-          setIsConnecting(false);
-          window.removeEventListener('message', handleMessage);
-          if (popup && !popup.closed) {
-            popup.close();
-          }
+        // Clean up only after processing
+        window.removeEventListener('message', handleMessage);
+        if (popup && !popup.closed) {
+          popup.close();
         }
+        setIsConnecting(false);
       }
     };
 
     window.addEventListener('message', handleMessage);
 
-    // Cleanup if popup is closed manually
-    const checkClosed = setInterval(() => {
-      if (popup.closed && !processingAuth) {
-        popupClosed = true;
-        clearInterval(checkClosed);
-        window.removeEventListener('message', handleMessage);
-        if (!messageReceived) {
-          console.log('Popup closed without message');
-          showModal("Telegram connection was cancelled", "info");
-          setIsConnecting(false);
-        }
-      }
-    }, 500);
-
     // Safety cleanup after 2 minutes
     const safetyTimeout = setTimeout(() => {
-      if (!messageReceived && !popupClosed) {
-        clearInterval(checkClosed);
+      if (!authProcessed) {
         window.removeEventListener('message', handleMessage);
         if (popup && !popup.closed) {
           popup.close();
@@ -144,14 +137,13 @@ const Header = () => {
 
     // Cleanup on component unmount
     return () => {
-      clearInterval(checkClosed);
       clearTimeout(safetyTimeout);
       window.removeEventListener('message', handleMessage);
-      if (!messageReceived) {
+      if (!authProcessed) {
         setIsConnecting(false);
       }
     };
-  }, [connectedWallet, showModal, isConnecting]);
+  }, [isConnecting, showModal, handleTelegramOAuth]);
 
   const handleTelegramGroup = useCallback(() => {
     const groupName = process.env.NEXT_PUBLIC_TELEGRAM_GROUP_NAME;
