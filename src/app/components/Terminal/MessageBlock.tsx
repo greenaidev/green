@@ -7,6 +7,7 @@ import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import Image from 'next/image';
 import TradingViewChart from '../TradingViewChart';
 
+
 interface MessageBlockProps {
   user: boolean;
   content: string;
