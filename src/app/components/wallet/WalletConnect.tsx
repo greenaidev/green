@@ -1,5 +1,6 @@
 // WalletConnect.tsx
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import { useState, useEffect } from "react";
 import { PublicKey } from "@solana/web3.js";
@@ -155,7 +156,6 @@ const WalletConnect = ({ onSessionChange, showModal }: {
     }
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     checkIfWalletIsConnected();
   }, []);
