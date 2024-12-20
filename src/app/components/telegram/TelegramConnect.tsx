@@ -17,6 +17,7 @@ interface TelegramStatus {
 const TelegramConnect = ({ walletAddress, onTelegramChange, showModal }: TelegramConnectProps) => {
   const [status, setStatus] = useState<TelegramStatus>({ connected: false });
   const [isLoading, setIsLoading] = useState(false);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
 
   const checkTelegramStatus = useCallback(async () => {
     if (!walletAddress) return;
@@ -44,6 +45,19 @@ const TelegramConnect = ({ walletAddress, onTelegramChange, showModal }: Telegra
       
       setStatus(data);
       onTelegramChange(data.connected);
+
+      // If connected but not a group member, get an invite link
+      if (data.connected && !data.groupMember) {
+        try {
+          const inviteResponse = await fetch('/api/telegram/invite');
+          const inviteData = await inviteResponse.json();
+          if (inviteResponse.ok && inviteData.inviteLink) {
+            setInviteLink(inviteData.inviteLink);
+          }
+        } catch (error) {
+          console.error('Error fetching invite link:', error);
+        }
+      }
     } catch (error) {
       console.error('Error checking Telegram status:', error);
       setStatus({ connected: false });
@@ -121,21 +135,6 @@ const TelegramConnect = ({ walletAddress, onTelegramChange, showModal }: Telegra
     }
   };
 
-  const handleOpenGroup = () => {
-    setIsLoading(true);
-    try {
-      // Try app first
-      const webUrl = `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT}`;
-      console.log('Opening group URL:', webUrl);
-      window.open(webUrl, '_blank');
-    } catch (error) {
-      console.error('Error opening group:', error);
-      showModal("Error opening Telegram group", "error");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   if (!status.connected) {
     return (
       <button 
@@ -149,13 +148,14 @@ const TelegramConnect = ({ walletAddress, onTelegramChange, showModal }: Telegra
   }
 
   return (
-    <button 
-      onClick={handleOpenGroup}
+    <a 
+      href={status.groupMember ? `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT}` : inviteLink || `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT}`}
       className="telegram-group-button"
-      disabled={isLoading}
+      target="_blank"
+      rel="noopener noreferrer"
     >
       {status.groupMember ? 'Open Telegram Group' : 'Join Telegram Group'}
-    </button>
+    </a>
   );
 };
 
