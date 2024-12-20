@@ -965,3 +965,45 @@ button:hover {
 /* Token Status Colors */
 .positive { color: #00ff00; }
 .negative { color: #ff0000; }
+
+/* Add after the wallet-connected styles */
+
+.button-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.telegram-button {
+  font-size: 8pt;
+  font-weight: bold;
+  color: var(--font-color);
+  background-color: transparent;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color var(--transition-duration), border-color var(--transition-duration), color var(--transition-duration);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.telegram-button:hover {
+  background-color: var(--black);
+  color: var(--font-color);
+  border-color: var(--border-color-hover);
+}
+
+.telegram-button.connected {
+  color: var(--font-inactive);
+  cursor: default;
+  opacity: 0.7;
+}
+
+.telegram-button.connected:hover {
+  background-color: transparent;
+  border-color: var(--border-color);
+  color: var(--font-inactive);
+}

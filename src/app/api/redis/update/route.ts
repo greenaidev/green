@@ -6,6 +6,7 @@ const redis = new Redis({
   token: process.env.REDIS_TOKEN!,
 });
 
+
 const TOKEN_TICKER = process.env.TOKEN_TICKER || 'GERTA';
 
 export async function POST(request: Request) {
