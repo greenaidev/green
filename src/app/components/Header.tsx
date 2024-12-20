@@ -44,6 +44,29 @@ const Header = () => {
   // Handle the actual OAuth data processing
   const handleTelegramOAuth = useCallback(async (authData: TelegramAuthResult) => {
     try {
+      // First update Redis with Telegram data
+      const redisResponse = await fetch('/api/redis/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          walletAddress: connectedWallet,
+          telegramId: authData.result.id.toString(),
+          telegramUsername: authData.result.username || '',
+          telegramFirstName: authData.result.first_name || '',
+          telegramPhotoUrl: authData.result.photo_url || '',
+          lastUpdate: Date.now().toString(),
+        }),
+      });
+
+      if (!redisResponse.ok) {
+        const errorData = await redisResponse.json();
+        showModal(errorData.error || "Failed to update user data", "error");
+        return false;
+      }
+
+      // Then process Telegram OAuth
       const response = await fetch('/api/telegram/oauth', {
         method: 'POST',
         headers: {
@@ -88,7 +111,7 @@ const Header = () => {
     showModal("Opening Telegram login...", "info");
 
     const popup = window.open(
-      `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${origin}&request_access=write`,
+      `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${origin}&request_access=write&dark=1`,
       "TelegramAuth",
       `width=${width},height=${height},left=${left},top=${top}`
     );

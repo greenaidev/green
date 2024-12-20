@@ -6,22 +6,42 @@ const redis = new Redis({
   token: process.env.REDIS_TOKEN!,
 });
 
-
 const TOKEN_TICKER = process.env.TOKEN_TICKER || 'GERTA';
 
 export async function POST(request: Request) {
   try {
-    const { walletAddress, tokenBalance } = await request.json();
+    const { 
+      walletAddress, 
+      tokenBalance,
+      telegramId,
+      telegramUsername,
+      telegramFirstName,
+      telegramPhotoUrl,
+      lastUpdate
+    } = await request.json();
 
     if (!walletAddress) {
       return NextResponse.json({ error: 'Wallet address is required' }, { status: 400 });
     }
 
     const key = `user:${walletAddress}`;
-    const userData = {
+    const userData: Record<string, string> = {
       user: walletAddress,
-      [TOKEN_TICKER]: tokenBalance.toString()
     };
+
+    // Add token balance if provided
+    if (tokenBalance !== undefined) {
+      userData[TOKEN_TICKER] = tokenBalance.toString();
+    }
+
+    // Add Telegram data if provided
+    if (telegramId) {
+      userData.telegramId = telegramId;
+      userData.telegramUsername = telegramUsername || '';
+      userData.telegramFirstName = telegramFirstName || '';
+      userData.telegramPhotoUrl = telegramPhotoUrl || '';
+      userData.lastUpdate = lastUpdate || Date.now().toString();
+    }
 
     try {
       const result = await redis.hset(key, userData);
