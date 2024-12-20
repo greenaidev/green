@@ -126,7 +126,7 @@ const Header = () => {
     showModal("Opening Telegram login...", "info", 2000);
 
     const popup = window.open(
-      `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${origin}&request_access=write&dark=1`,
+      `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${origin}&request_access=write`,
       "TelegramAuth",
       `width=${width},height=${height},left=${left},top=${top}`
     );
@@ -140,16 +140,44 @@ const Header = () => {
     let authProcessed = false;
 
     const handleMessage = async (event: MessageEvent) => {
-      if (event.origin !== 'https://oauth.telegram.org') return;
-      
-      if (!event.data?.event || event.data.event !== 'auth_result' || !event.data.result) {
-        console.error('Invalid message format:', event.data);
+      // Only process messages from Telegram OAuth
+      if (event.origin !== 'https://oauth.telegram.org') {
         return;
       }
 
       try {
+        // Parse and validate the data
+        const data = event.data;
+        console.log('Received Telegram OAuth data:', data);
+        
+        if (!data || typeof data !== 'object') {
+          console.error('Invalid data format:', data);
+          return;
+        }
+
+        if (data.event !== 'auth_result') {
+          console.error('Invalid event type:', data.event);
+          return;
+        }
+
+        const telegramData = data.result;
+        if (!telegramData || typeof telegramData !== 'object') {
+          console.error('Invalid result format:', telegramData);
+          return;
+        }
+
+        // Process the OAuth
+        console.log('Processing Telegram OAuth data');
         authProcessed = true;
-        await handleTelegramOAuth(event.data as TelegramAuthResult);
+
+        await handleTelegramOAuth({
+          event: 'auth_result',
+          result: telegramData,
+          origin: data.origin || window.location.origin
+        });
+      } catch (error) {
+        console.error('Error processing Telegram message:', error);
+        showModal("Failed to process Telegram login", "error", 3000);
       } finally {
         window.removeEventListener('message', handleMessage);
         if (popup && !popup.closed) popup.close();
