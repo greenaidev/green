@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { AppError } from '@/types/errors';
 
+
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
 
