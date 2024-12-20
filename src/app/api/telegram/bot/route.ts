@@ -9,38 +9,35 @@ const telegram = new Telegram(process.env.TELEGRAM_BOT_TOKEN!);
 export const maxDuration = 300; // 5 minutes timeout
 export const dynamic = 'force-dynamic'; // No caching
 
-async function parseRequestBody(request: Request) {
-  try {
-    // First try to get the raw body as text
-    const rawBody = await request.text();
-    console.log('📄 Raw request body:', rawBody);
-
-    // If it's already a string representation of an object, parse it
-    if (rawBody.startsWith('{') || rawBody.startsWith('[')) {
-      return JSON.parse(rawBody);
-    }
-
-    // If it's a stringified object/array, parse it
-    try {
-      return JSON.parse(rawBody);
-    } catch {
-      // If it's not valid JSON, return the raw body
-      return rawBody;
-    }
-  } catch (error) {
-    console.error('❌ Error reading request body:', error);
-    throw error;
-  }
-}
-
 export async function POST(request: Request) {
   console.log('\n🤖 Bot endpoint hit:', new Date().toISOString());
   console.log('📨 Headers:', Object.fromEntries(request.headers.entries()));
   console.log('🌐 URL:', request.url);
   
   try {
-    const update = await parseRequestBody(request);
-    console.log('✅ Parsed update:', JSON.stringify(update, null, 2));
+    let update;
+    const contentType = request.headers.get('content-type');
+    
+    try {
+      if (contentType?.includes('application/json')) {
+        update = await request.json();
+      } else {
+        const rawBody = await request.text();
+        console.log('📄 Raw request body:', rawBody);
+        
+        try {
+          update = JSON.parse(rawBody);
+        } catch {
+          console.log('⚠️ Could not parse body as JSON, using raw body');
+          update = rawBody;
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error reading request body:', error);
+      return new Response('Error reading request body', { status: 400 });
+    }
+    
+    console.log('✅ Parsed update:', typeof update === 'string' ? update : JSON.stringify(update, null, 2));
     
     // Verify we have a valid message
     if (!update?.message?.chat?.id || !update?.message?.from) {
