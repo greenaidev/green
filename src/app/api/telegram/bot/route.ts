@@ -10,7 +10,9 @@ export const maxDuration = 300; // 5 minutes timeout
 export const dynamic = 'force-dynamic'; // No caching
 
 export async function POST(request: Request) {
-  console.log('🤖 Bot endpoint hit:', new Date().toISOString());
+  console.log('\n🤖 Bot endpoint hit:', new Date().toISOString());
+  console.log('📨 Headers:', Object.fromEntries(request.headers.entries()));
+  console.log('🌐 URL:', request.url);
   
   try {
     const rawBody = await request.text();
@@ -39,6 +41,8 @@ export async function POST(request: Request) {
     
     const chatId = update.message.chat.id;
     console.log('👤 Processing message for chat ID:', chatId);
+    console.log('📝 Message text:', update.message.text);
+    console.log('👤 From user:', update.message.from);
     
     // Handle /start command with state parameter
     if (update.message?.text?.startsWith('/start')) {
@@ -52,7 +56,9 @@ export async function POST(request: Request) {
         await telegram.sendMessage(
           chatId,
           'Please start the authentication from the website.'
-        );
+        ).catch(error => {
+          console.error('❌ Failed to send message:', error);
+        });
         return new Response('OK', { status: 200 });
       }
 
@@ -66,7 +72,9 @@ export async function POST(request: Request) {
         await telegram.sendMessage(
           chatId,
           'Invalid or expired authentication attempt. Please try again from the website.'
-        );
+        ).catch(error => {
+          console.error('❌ Failed to send message:', error);
+        });
         if (authState) await clearAuthState(state);
         return new Response('OK', { status: 200 });
       }
@@ -92,7 +100,9 @@ export async function POST(request: Request) {
           await telegram.sendMessage(
             chatId,
             `Insufficient token balance. Required: ${process.env.TOKEN_AMOUNT} ${process.env.TOKEN_TICKER}`
-          );
+          ).catch(error => {
+            console.error('❌ Failed to send message:', error);
+          });
           await clearAuthState(state);
           return new Response('OK', { status: 200 });
         }
@@ -102,6 +112,9 @@ export async function POST(request: Request) {
         const invite = await telegram.createChatInviteLink(process.env.TELEGRAM_GROUP_ID!, {
           member_limit: 1,
           expire_date: Math.floor(Date.now() / 1000) + 300 // 5 minutes
+        }).catch(error => {
+          console.error('❌ Failed to create invite link:', error);
+          throw error;
         });
         console.log('✨ Invite link created:', invite.invite_link);
 
@@ -111,11 +124,16 @@ export async function POST(request: Request) {
           telegramId: update.message.from.id.toString(),
           telegramUsername: update.message.from.username,
           groupMember: false
+        }).catch(error => {
+          console.error('❌ Failed to update user data:', error);
+          throw error;
         });
 
         // Clear the auth state
         console.log('🧹 Clearing auth state for:', state);
-        await clearAuthState(state);
+        await clearAuthState(state).catch(error => {
+          console.error('❌ Failed to clear auth state:', error);
+        });
 
         // Send success message with group link
         console.log('📨 Sending success message with invite link');
@@ -132,7 +150,10 @@ export async function POST(request: Request) {
               ]]
             }
           }
-        );
+        ).catch(error => {
+          console.error('❌ Failed to send success message:', error);
+          throw error;
+        });
 
         console.log('✅ Successfully completed /start flow');
         return new Response('OK', { status: 200 });
@@ -142,10 +163,14 @@ export async function POST(request: Request) {
         await telegram.sendMessage(
           chatId,
           'Error during verification. Please try again.'
-        );
+        ).catch(error => {
+          console.error('❌ Failed to send error message:', error);
+        });
         await clearAuthState(state);
         return new Response('Verification error', { status: 500 });
       }
+    } else {
+      console.log('ℹ️ Not a /start command:', update.message?.text);
     }
     
     return new Response('OK', { status: 200 });
@@ -158,7 +183,7 @@ export async function POST(request: Request) {
 
 // Webhook setup endpoint
 export async function GET(request: Request) {
-  console.log('🔍 GET request received:', new Date().toISOString());
+  console.log('\n🔍 GET request received:', new Date().toISOString());
   console.log('📨 Headers:', Object.fromEntries(request.headers.entries()));
   console.log('🌐 URL:', request.url);
   
@@ -172,6 +197,7 @@ export async function GET(request: Request) {
       
       // Delete any existing webhook first
       await telegram.deleteWebhook({ drop_pending_updates: true });
+      console.log('🧹 Deleted existing webhook');
       
       // Set new webhook
       const result = await telegram.setWebhook(webhookUrl, {
@@ -191,7 +217,14 @@ export async function GET(request: Request) {
       });
     }
     
-    return NextResponse.json({ message: 'Bot endpoint' });
+    // Get webhook info
+    const webhookInfo = await telegram.getWebhookInfo();
+    console.log('ℹ️ Current webhook info:', webhookInfo);
+    
+    return NextResponse.json({ 
+      message: 'Bot endpoint',
+      webhookInfo
+    });
   } catch (error) {
     const webhookError = error as AppError;
     console.error('❌ Webhook setup error:', webhookError);
