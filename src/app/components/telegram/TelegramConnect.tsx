@@ -8,14 +8,7 @@ interface TelegramConnectProps {
   showModal: (message: string, type: "success" | "error" | "info") => void;
 }
 
-interface TelegramStatus {
-  connected: boolean;
-  username?: string;
-  groupMember?: boolean;
-}
-
 const TelegramConnect = ({ walletAddress, onTelegramChange, showModal }: TelegramConnectProps) => {
-  const [status, setStatus] = useState<TelegramStatus>({ connected: false });
   const [isLoading, setIsLoading] = useState(false);
 
   const checkTelegramStatus = useCallback(async () => {
@@ -27,7 +20,6 @@ const TelegramConnect = ({ walletAddress, onTelegramChange, showModal }: Telegra
       
       if (!contentType || !contentType.includes("application/json")) {
         console.error('Invalid response type:', contentType);
-        setStatus({ connected: false });
         onTelegramChange(false);
         return;
       }
@@ -37,16 +29,13 @@ const TelegramConnect = ({ walletAddress, onTelegramChange, showModal }: Telegra
       
       if (!response.ok) {
         console.error('Status error:', data);
-        setStatus({ connected: false });
         onTelegramChange(false);
         return;
       }
       
-      setStatus(data);
       onTelegramChange(data.connected);
     } catch (error) {
       console.error('Error checking Telegram status:', error);
-      setStatus({ connected: false });
       onTelegramChange(false);
     }
   }, [walletAddress, onTelegramChange]);
