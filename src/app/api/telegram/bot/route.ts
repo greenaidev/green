@@ -15,29 +15,23 @@ export async function POST(request: Request) {
   console.log('🌐 URL:', request.url);
   
   try {
+    const clonedRequest = request.clone();
+    const rawBody = await clonedRequest.text();
+    console.log('📄 Raw request body:', rawBody);
+
     let update;
-    const contentType = request.headers.get('content-type');
-    
     try {
-      if (contentType?.includes('application/json')) {
-        update = await request.json();
-      } else {
-        const rawBody = await request.text();
-        console.log('📄 Raw request body:', rawBody);
-        
-        try {
-          update = JSON.parse(rawBody);
-        } catch {
-          console.log('⚠️ Could not parse body as JSON, using raw body');
-          update = rawBody;
-        }
+      update = await request.json();
+    } catch {
+      try {
+        update = JSON.parse(rawBody);
+      } catch (error) {
+        console.error('❌ Failed to parse request body:', error);
+        return new Response('Invalid JSON', { status: 400 });
       }
-    } catch (error) {
-      console.error('❌ Error reading request body:', error);
-      return new Response('Error reading request body', { status: 400 });
     }
     
-    console.log('✅ Parsed update:', typeof update === 'string' ? update : JSON.stringify(update, null, 2));
+    console.log('✅ Parsed update:', JSON.stringify(update, null, 2));
     
     // Verify we have a valid message
     if (!update?.message?.chat?.id || !update?.message?.from) {
