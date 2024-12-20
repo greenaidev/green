@@ -11,15 +11,8 @@ export const dynamic = 'force-dynamic'; // No caching
 
 export async function POST(request: Request) {
   console.log('🤖 Bot endpoint hit:', new Date().toISOString());
-  console.log('🔑 Bot token:', process.env.TELEGRAM_BOT_TOKEN);
   
   try {
-    // Log request details
-    const headers = Object.fromEntries(request.headers.entries());
-    console.log('📨 Request headers:', headers);
-    console.log('🌐 Request URL:', request.url);
-    console.log('📝 Request method:', request.method);
-    
     const rawBody = await request.text();
     console.log('📄 Raw request body:', rawBody);
     
@@ -31,7 +24,7 @@ export async function POST(request: Request) {
     let update;
     try {
       update = JSON.parse(rawBody);
-      console.log('✅ Successfully parsed update:', JSON.stringify(update, null, 2));
+      console.log('✅ Parsed update:', JSON.stringify(update, null, 2));
     } catch (error) {
       const parseError = error as AppError;
       console.error('❌ Failed to parse request body:', parseError);
@@ -39,7 +32,7 @@ export async function POST(request: Request) {
     }
     
     // Verify we have a valid message
-    if (!update?.message?.chat?.id) {
+    if (!update?.message?.chat?.id || !update?.message?.from) {
       console.error('❌ Invalid update format:', update);
       return new Response('Invalid update format', { status: 400 });
     }
@@ -59,10 +52,7 @@ export async function POST(request: Request) {
         await telegram.sendMessage(
           chatId,
           'Please start the authentication from the website.'
-        ).catch(error => {
-          const sendError = error as AppError;
-          console.error('❌ Failed to send message:', sendError);
-        });
+        );
         return new Response('OK', { status: 200 });
       }
 
@@ -71,15 +61,13 @@ export async function POST(request: Request) {
       const authState = await getAuthState(state);
       console.log('📊 Auth state retrieved:', authState);
       
-      if (!authState) {
-        console.log('❌ No auth state found for state:', state);
+      if (!authState || !authState.walletAddress || Date.now() - authState.timestamp > 300000) {
+        console.log('❌ Invalid or expired auth state:', authState);
         await telegram.sendMessage(
           chatId,
           'Invalid or expired authentication attempt. Please try again from the website.'
-        ).catch(error => {
-          const sendError = error as AppError;
-          console.error('❌ Failed to send message:', sendError);
-        });
+        );
+        if (authState) await clearAuthState(state);
         return new Response('OK', { status: 200 });
       }
 
@@ -104,10 +92,7 @@ export async function POST(request: Request) {
           await telegram.sendMessage(
             chatId,
             `Insufficient token balance. Required: ${process.env.TOKEN_AMOUNT} ${process.env.TOKEN_TICKER}`
-          ).catch(error => {
-            const sendError = error as AppError;
-            console.error('❌ Failed to send message:', sendError);
-          });
+          );
           await clearAuthState(state);
           return new Response('OK', { status: 200 });
         }
@@ -117,10 +102,6 @@ export async function POST(request: Request) {
         const invite = await telegram.createChatInviteLink(process.env.TELEGRAM_GROUP_ID!, {
           member_limit: 1,
           expire_date: Math.floor(Date.now() / 1000) + 300 // 5 minutes
-        }).catch(error => {
-          const inviteError = error as AppError;
-          console.error('❌ Failed to create invite link:', inviteError);
-          throw inviteError;
         });
         console.log('✨ Invite link created:', invite.invite_link);
 
@@ -130,19 +111,11 @@ export async function POST(request: Request) {
           telegramId: update.message.from.id.toString(),
           telegramUsername: update.message.from.username,
           groupMember: false
-        }).catch(error => {
-          const updateError = error as AppError;
-          console.error('❌ Failed to update user data:', updateError);
-          throw updateError;
         });
 
         // Clear the auth state
         console.log('🧹 Clearing auth state for:', state);
-        await clearAuthState(state).catch(error => {
-          const clearError = error as AppError;
-          console.error('❌ Failed to clear auth state:', clearError);
-          throw clearError;
-        });
+        await clearAuthState(state);
 
         // Send success message with group link
         console.log('📨 Sending success message with invite link');
@@ -159,11 +132,7 @@ export async function POST(request: Request) {
               ]]
             }
           }
-        ).catch(error => {
-          const sendError = error as AppError;
-          console.error('❌ Failed to send success message:', sendError);
-          throw sendError;
-        });
+        );
 
         console.log('✅ Successfully completed /start flow');
         return new Response('OK', { status: 200 });
@@ -173,20 +142,13 @@ export async function POST(request: Request) {
         await telegram.sendMessage(
           chatId,
           'Error during verification. Please try again.'
-        ).catch(error => {
-          const sendError = error as AppError;
-          console.error('❌ Failed to send error message:', sendError);
-        });
-        await clearAuthState(state).catch(error => {
-          const clearError = error as AppError;
-          console.error('❌ Failed to clear auth state:', clearError);
-        });
+        );
+        await clearAuthState(state);
         return new Response('Verification error', { status: 500 });
       }
-    } else {
-      console.log('ℹ️ Not a /start command:', update.message?.text);
-      return new Response('OK', { status: 200 });
     }
+    
+    return new Response('OK', { status: 200 });
   } catch (error) {
     const botError = error as AppError;
     console.error('❌ Bot error:', botError);
