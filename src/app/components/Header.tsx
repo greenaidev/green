@@ -8,6 +8,14 @@ import Modal from "./Modal";
 import PrivateDashboard from "./PrivateDashboard";
 import TopUp from "./TopUp";
 
+interface TelegramUser {
+  id: number;
+  first_name: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+}
+
 const Header = () => {
   const [isSessionValid, setIsSessionValid] = useState(false);
   const [connectedWallet, setConnectedWallet] = useState<string | null>(null);
@@ -15,6 +23,7 @@ const Header = () => {
   const [modalType, setModalType] = useState<"success" | "error" | "info">("info");
   const [isTelegramConnected, setIsTelegramConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
 
   const handleSessionChange = useCallback((valid: boolean, address: string | null) => {
     setIsSessionValid(valid);
@@ -57,10 +66,10 @@ const Header = () => {
     const handleMessage = async (event: MessageEvent) => {
       console.log('Received message:', event.origin, event.data);
       
-      // Check if the message is from Telegram OAuth
-      if (event.data && typeof event.data === 'string' && event.data.startsWith('telegram-auth:')) {
+      // Parse Telegram OAuth response
+      if (event.data && typeof event.data === 'object' && event.data.event === 'auth_result') {
         messageReceived = true;
-        const authData = JSON.parse(event.data.replace('telegram-auth:', ''));
+        const { result } = event.data;
         
         try {
           const response = await fetch('/api/telegram/oauth', {
@@ -68,13 +77,17 @@ const Header = () => {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(authData),
+            body: JSON.stringify({
+              ...result,
+              walletAddress: connectedWallet
+            }),
           });
 
           if (response.ok) {
             const data = await response.json();
             setIsTelegramConnected(true);
-            showModal(data.message || "Telegram connected successfully!", "success");
+            setTelegramUser(result);
+            showModal("Telegram connected successfully!", "success");
           } else {
             const errorData = await response.json();
             showModal(errorData.error || "Failed to connect Telegram", "error");
@@ -88,6 +101,7 @@ const Header = () => {
         if (!popupClosed && popup) {
           popup.close();
         }
+        setIsConnecting(false);
       }
     };
 
@@ -115,7 +129,12 @@ const Header = () => {
         setIsConnecting(false);
       }
     };
-  }, [isTelegramConnected, showModal, isConnecting]);
+  }, [connectedWallet, showModal, isConnecting]);
+
+  const handleTelegramGroup = useCallback(() => {
+    const groupName = process.env.NEXT_PUBLIC_TELEGRAM_GROUP_NAME;
+    window.open(`https://t.me/${groupName}`, '_blank');
+  }, []);
 
   const shouldShowTopUp = connectedWallet && !isSessionValid;
 
@@ -144,10 +163,10 @@ const Header = () => {
               ) : (
                 <button 
                   className="telegram-button connected"
+                  onClick={handleTelegramGroup}
                   type="button"
-                  disabled
                 >
-                  Telegram Connected
+                  Telegram
                 </button>
               )}
             </div>
