@@ -17,6 +17,7 @@ export async function POST(request: Request) {
       telegramUsername,
       telegramFirstName,
       telegramPhotoUrl,
+      telegramAuthDate,
       lastUpdate
     } = await request.json();
 
@@ -40,28 +41,41 @@ export async function POST(request: Request) {
       userData.telegramUsername = telegramUsername || '';
       userData.telegramFirstName = telegramFirstName || '';
       userData.telegramPhotoUrl = telegramPhotoUrl || '';
+      userData.telegramAuthDate = telegramAuthDate || '';
       userData.lastUpdate = lastUpdate || Date.now().toString();
     }
 
     try {
-      const result = await redis.hset(key, userData);
-      console.log('POST /api/redis/update 200');
-      return NextResponse.json({ success: true, result, data: userData });
+      // Update Redis
+      await redis.hmset(key, userData);
+      console.log('Redis update successful for user:', walletAddress);
+
+      // Fetch the updated data for verification
+      const updatedData = await redis.hgetall(key);
+      console.log('Updated Redis data:', updatedData);
+
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Data updated successfully',
+        data: updatedData 
+      });
     } catch (redisError) {
       const errorMessage = redisError instanceof Error ? redisError.message : 'Unknown error';
       if (errorMessage.includes('max daily request limit exceeded')) {
+        console.log('Redis rate limit exceeded for user:', walletAddress);
         return NextResponse.json({ 
           success: true, 
-          result: null, 
-          data: userData,
-          warning: 'Data not stored due to rate limit'
+          message: 'Operation completed but data not stored',
+          warning: 'Rate limit exceeded',
+          data: userData
         });
       }
       throw redisError;
     }
   } catch (error) {
+    console.error('Redis update error:', error);
     return NextResponse.json({ 
-      error: 'Failed to update Redis',
+      error: 'Failed to update data',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

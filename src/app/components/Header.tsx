@@ -1,5 +1,4 @@
 // src/app/components/Header.tsx
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -14,6 +13,7 @@ interface TelegramUser {
   username?: string;
   photo_url?: string;
   auth_date: number;
+  hash: string;
 }
 
 interface TelegramAuthResult {
@@ -36,37 +36,44 @@ const Header = () => {
     setConnectedWallet(address);
   }, []);
 
-  const showModal = useCallback((message: string, type: "success" | "error" | "info") => {
+  const showModal = useCallback((message: string, type: "success" | "error" | "info", duration = 3000) => {
     setModalMessage(message);
     setModalType(type);
+    setTimeout(() => setModalMessage(null), duration);
   }, []);
 
-  // Handle the actual OAuth data processing
+  // Check if user has Telegram connected on mount
+  useEffect(() => {
+    const checkTelegramStatus = async () => {
+      if (connectedWallet) {
+        try {
+          const response = await fetch(`/api/redis/get?key=user:${connectedWallet}`);
+          const data = await response.json();
+          
+          if (data.success && data.data?.telegramId) {
+            setIsTelegramConnected(true);
+            setTelegramUser({
+              id: parseInt(data.data.telegramId),
+              first_name: data.data.telegramFirstName,
+              username: data.data.telegramUsername,
+              photo_url: data.data.telegramPhotoUrl,
+              auth_date: parseInt(data.data.telegramAuthDate),
+              hash: ''
+            });
+          }
+        } catch (error) {
+          console.error('Error checking Telegram status:', error);
+        }
+      }
+    };
+
+    checkTelegramStatus();
+  }, [connectedWallet]);
+
   const handleTelegramOAuth = useCallback(async (authData: TelegramAuthResult) => {
     try {
-      // First update Redis with Telegram data
-      const redisResponse = await fetch('/api/redis/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          walletAddress: connectedWallet,
-          telegramId: authData.result.id.toString(),
-          telegramUsername: authData.result.username || '',
-          telegramFirstName: authData.result.first_name || '',
-          telegramPhotoUrl: authData.result.photo_url || '',
-          lastUpdate: Date.now().toString(),
-        }),
-      });
+      showModal("Verifying Telegram data...", "info", 2000);
 
-      if (!redisResponse.ok) {
-        const errorData = await redisResponse.json();
-        showModal(errorData.error || "Failed to update user data", "error");
-        return false;
-      }
-
-      // Then process Telegram OAuth
       const response = await fetch('/api/telegram/oauth', {
         method: 'POST',
         headers: {
@@ -78,25 +85,33 @@ const Header = () => {
         }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
         setIsTelegramConnected(true);
         setTelegramUser(authData.result);
-        showModal("Telegram connected successfully!", "success");
+        showModal("Telegram connected successfully!", "success", 3000);
+        
+        // Log the final Redis data
+        const redisResponse = await fetch(`/api/redis/get?key=user:${connectedWallet}`);
+        const redisData = await redisResponse.json();
+        console.log('Final Redis Data:', redisData.data);
+        
         return true;
       } else {
-        const errorData = await response.json();
-        showModal(errorData.error || "Failed to connect Telegram", "error");
+        console.error('Telegram OAuth failed:', data);
+        showModal(data.error || "Failed to connect Telegram", "error", 3000);
         return false;
       }
     } catch (error) {
       console.error('Telegram auth error:', error);
-      showModal("Connection error. Please try again.", "error");
+      showModal("Connection error. Please try again.", "error", 3000);
       return false;
+    } finally {
+      setIsConnecting(false);
     }
   }, [connectedWallet, showModal]);
 
-  // Handle the UI flow
   const handleTelegramLogin = useCallback(() => {
     if (isConnecting) return;
     setIsConnecting(true);
@@ -108,7 +123,7 @@ const Header = () => {
     const left = (window.innerWidth - width) / 2;
     const top = (window.innerHeight - height) / 2;
 
-    showModal("Opening Telegram login...", "info");
+    showModal("Opening Telegram login...", "info", 2000);
 
     const popup = window.open(
       `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${origin}&request_access=write&dark=1`,
@@ -117,30 +132,27 @@ const Header = () => {
     );
 
     if (!popup) {
-      showModal("Please allow popups to connect with Telegram", "error");
+      showModal("Please allow popups to connect with Telegram", "error", 3000);
       setIsConnecting(false);
       return;
     }
 
     let authProcessed = false;
 
-    // Handle incoming messages
     const handleMessage = async (event: MessageEvent) => {
-      console.log('Received message:', event.origin, event.data);
+      if (event.origin !== 'https://oauth.telegram.org') return;
       
-      if (
-        event.origin === 'https://oauth.telegram.org' && 
-        event.data?.event === 'auth_result'
-      ) {
+      if (!event.data?.event || event.data.event !== 'auth_result' || !event.data.result) {
+        console.error('Invalid message format:', event.data);
+        return;
+      }
+
+      try {
         authProcessed = true;
-        const success = await handleTelegramOAuth(event.data as TelegramAuthResult);
-        
-        // Clean up only after processing
+        await handleTelegramOAuth(event.data as TelegramAuthResult);
+      } finally {
         window.removeEventListener('message', handleMessage);
-        if (popup && !popup.closed) {
-          popup.close();
-        }
-        setIsConnecting(false);
+        if (popup && !popup.closed) popup.close();
       }
     };
 
@@ -150,26 +162,22 @@ const Header = () => {
     const safetyTimeout = setTimeout(() => {
       if (!authProcessed) {
         window.removeEventListener('message', handleMessage);
-        if (popup && !popup.closed) {
-          popup.close();
-        }
-        showModal("Connection timed out. Please try again.", "error");
+        if (popup && !popup.closed) popup.close();
+        showModal("Connection timed out. Please try again.", "error", 3000);
         setIsConnecting(false);
       }
     }, 120000);
 
-    // Cleanup on component unmount
     return () => {
       clearTimeout(safetyTimeout);
       window.removeEventListener('message', handleMessage);
-      if (!authProcessed) {
-        setIsConnecting(false);
-      }
+      if (!authProcessed && popup && !popup.closed) popup.close();
+      setIsConnecting(false);
     };
   }, [isConnecting, showModal, handleTelegramOAuth]);
 
   const handleTelegramGroup = useCallback(() => {
-    const groupName = process.env.NEXT_PUBLIC_TELEGRAM_GROUP_NAME;
+    const groupName = process.env.TELEGRAM_GROUP_NAME;
     window.open(`https://t.me/${groupName}`, '_blank');
   }, []);
 
@@ -203,7 +211,7 @@ const Header = () => {
                   onClick={handleTelegramGroup}
                   type="button"
                 >
-                  Telegram
+                  {telegramUser?.username || 'Telegram'}
                 </button>
               )}
             </div>
