@@ -55,15 +55,20 @@ const Header = () => {
     let messageReceived = false;
 
     const handleMessage = async (event: MessageEvent) => {
-      if (event.origin === window.location.origin && event.data.telegram_data) {
+      console.log('Received message:', event.origin, event.data);
+      
+      // Check if the message is from Telegram OAuth
+      if (event.data && typeof event.data === 'string' && event.data.startsWith('telegram-auth:')) {
         messageReceived = true;
+        const authData = JSON.parse(event.data.replace('telegram-auth:', ''));
+        
         try {
           const response = await fetch('/api/telegram/oauth', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(event.data.telegram_data),
+            body: JSON.stringify(authData),
           });
 
           if (response.ok) {
@@ -74,7 +79,8 @@ const Header = () => {
             const errorData = await response.json();
             showModal(errorData.error || "Failed to connect Telegram", "error");
           }
-        } catch {
+        } catch (error) {
+          console.error('Telegram auth error:', error);
           showModal("Connection error. Please try again.", "error");
         }
 
@@ -89,14 +95,15 @@ const Header = () => {
 
     // Cleanup if popup is closed manually
     const checkClosed = setInterval(() => {
-      if (popup.closed && !messageReceived) {
+      if (popup.closed) {
         popupClosed = true;
         clearInterval(checkClosed);
         window.removeEventListener('message', handleMessage);
-        if (!isTelegramConnected && !messageReceived) {
+        if (!messageReceived) {
+          console.log('Popup closed without message');
           showModal("Telegram connection was cancelled", "info");
+          setIsConnecting(false);
         }
-        setIsConnecting(false);
       }
     }, 1000);
 
@@ -104,7 +111,9 @@ const Header = () => {
     return () => {
       clearInterval(checkClosed);
       window.removeEventListener('message', handleMessage);
-      setIsConnecting(false);
+      if (!messageReceived) {
+        setIsConnecting(false);
+      }
     };
   }, [isTelegramConnected, showModal, isConnecting]);
 
