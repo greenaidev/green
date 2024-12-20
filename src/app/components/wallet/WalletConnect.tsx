@@ -59,7 +59,6 @@ const WalletConnect = ({ onSessionChange, showModal }: {
         if (sessionValidation.ok) {
           setWalletAddress(publicKey);
           await fetchTokenBalance(publicKey);
-          onSessionChange(true, publicKey, tokenBalance);
           showModal("Session is valid", "success");
         } else {
           setWalletAddress(null);
@@ -74,7 +73,7 @@ const WalletConnect = ({ onSessionChange, showModal }: {
         showModal("Connect your wallet to login", "info");
       }
     }
-  }, [onSessionChange, showModal, tokenBalance, fetchTokenBalance]);
+  }, [onSessionChange, showModal, fetchTokenBalance]);
 
   const connectWallet = async () => {
     const solana = (window as unknown as { solana?: Solana }).solana;
