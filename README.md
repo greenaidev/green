@@ -9,8 +9,6 @@ A sophisticated web application combining AI capabilities with Web3 functionalit
 - Token-gated access system
 - Balance verification
 - Secure session management
-- Telegram OAuth integration
-- Redis data persistence
 
 ### AI & Data Features
 - OpenAI GPT-4 integration
@@ -36,9 +34,6 @@ A sophisticated web application combining AI capabilities with Web3 functionalit
 /gecko trending     # Trending on CoinGecko
 /chart <pair>       # Display TradingView chart
 
-# User Info
-/info              # Display user data and connections
-
 # Utility Commands
 /weather            # Local weather
 /weather <city>     # City-specific weather
@@ -55,10 +50,7 @@ A sophisticated web application combining AI capabilities with Web3 functionalit
 - **Blockchain**: Solana Web3.js
 - **AI**: OpenAI API (GPT-4, DALL-E)
 - **Data**: DexScreener, CoinGecko, TradingView
-- **Authentication**: 
-  - Cryptographic signatures
-  - Telegram OAuth
-- **Database**: Upstash Redis
+- **Authentication**: Cryptographic signatures
 - **Styling**: Custom CSS with terminal aesthetics
 
 ## Installation
@@ -88,19 +80,9 @@ SESSION_SECRET=your_session_secret
 OPENAI_API_KEY=your_openai_key
 OPENWEATHER_API_KEY=your_weather_key
 
-# Token Gating
+# Optional Token Gating
 TOKEN_ADDRESS=solana_token_address
 TOKEN_AMOUNT=minimum_token_amount
-
-# Telegram Integration
-TELEGRAM_BOT_TOKEN=your_bot_token
-NEXT_PUBLIC_BOT_ID=your_bot_id
-TELEGRAM_GROUP_ID=your_group_id
-TELEGRAM_GROUP_NAME=your_group_name
-
-# Redis Configuration
-REDIS_URL=your_redis_url
-REDIS_TOKEN=your_redis_token
 ```
 
 4. Run the development server:
@@ -114,15 +96,11 @@ npm run dev
 - `SESSION_SECRET`: For session encryption
 - `OPENAI_API_KEY`: OpenAI API access
 - `OPENWEATHER_API_KEY`: Weather data access
-- `TELEGRAM_BOT_TOKEN`: Telegram bot authentication
-- `REDIS_URL` & `REDIS_TOKEN`: Redis database access
 
 ### Optional Variables
 - `TOKEN_ADDRESS`: Solana token address for gating
 - `TOKEN_AMOUNT`: Minimum token requirement
 - `SYSTEM_PROMPT`: Custom AI system prompt
-- `TELEGRAM_GROUP_ID`: Private group access
-- `TELEGRAM_GROUP_NAME`: Group link generation
 
 ## Development
 
@@ -132,9 +110,6 @@ green/
 ├── src/
 │   ├── app/
 │   │   ├── api/         # API routes
-│   │   │   ├── redis/   # Redis operations
-│   │   │   ├── session/ # Session management
-│   │   │   └── telegram/# Telegram OAuth
 │   │   ├── components/  # React components
 │   │   └── utils/       # Utility functions
 │   ├── hooks/           # Custom React hooks
@@ -149,8 +124,6 @@ green/
 - `/api/openai` - AI interactions
 - `/api/market/*` - Cryptocurrency data
 - `/api/weather` - Weather information
-- `/api/telegram/oauth` - Telegram authentication
-- `/api/redis/*` - Data persistence
 
 ## Security Features
 
@@ -158,8 +131,6 @@ green/
 - Secure cookie handling
 - Signature verification
 - Token balance validation
-- Telegram OAuth verification
-- Redis data persistence
 - Rate limiting
 - Error handling
 
@@ -182,8 +153,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - CoinGecko for cryptocurrency information
 - OpenWeather for weather data
 - TradingView for charts
-- Telegram for OAuth integration
-- Upstash for Redis hosting
 
 ## Support
 

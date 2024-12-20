@@ -238,9 +238,6 @@ export const handleCommand = async ({
 - \`/gecko trending\` - Show trending coins on CoinGecko
 - \`/chart <pair>\` - Show TradingView chart (e.g., /chart btcusd)
 
-## User Data
-- \`/info\` - Display user wallet and connection information
-
 ## System Commands
 - \`/reboot\` - Reboot the terminal (clear chat history)
 - \`/help\` - Show this help message
@@ -251,74 +248,35 @@ Welcome to the terminal! Use commands to interact with the system.`,
       ]);
       break;
     case 'info':
-      try {
-        // Get wallet address from session
-        const sessionResponse = await fetch('/api/session/validate');
-        const sessionData = await sessionResponse.json();
-        
-        if (!sessionData.user?.walletAddress) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'system',
-              content: '❌ Please connect your wallet first',
-            },
-          ]);
-          return;
-        }
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'system',
+          content: `# Application Information
 
-        // Get user data from Redis
-        const redisResponse = await fetch(`/api/redis/get?key=user:${sessionData.user.walletAddress}`);
-        const redisData = await redisResponse.json();
+## Features
+- **AI Chat**: Engage in conversations with GPT-4
+- **Image Generation**: Create images with DALL-E 3
+- **Token Data**: Track Solana tokens using DexScreener
+- **Market Analysis**: View trending and latest tokens
+- **Weather & Time**: Get worldwide weather and time information
 
-        if (!redisData.success || !redisData.data) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: 'system',
-              content: '❌ No user data found',
-            },
-          ]);
-          return;
-        }
+## Technologies
+- Next.js for the framework
+- OpenAI for AI capabilities
+- DexScreener for market data
+- CoinGecko for crypto market data
+- OpenWeather for weather data
+- TradingView for charts
+- Markdown for content formatting
+- Prism.js for syntax highlighting
 
-        const userData = redisData.data;
-        const tokenTicker = process.env.NEXT_PUBLIC_TOKEN_TICKER || 'GERTA';
+## Commands
+Type \`/help\` to see all available commands.
 
-        // Format user data
-        const content = `# User Information
-
-## Wallet
-- Address: \`${userData.walletAddress}\`
-- ${tokenTicker} Balance: ${userData[tokenTicker] || '0'}
-
-${userData.telegramId ? `## Telegram
-- ID: ${userData.telegramId}
-- Username: @${userData.telegramUsername || 'N/A'}
-- Name: ${userData.telegramFirstName || 'N/A'}
-- Connected: ${new Date(parseInt(userData.lastUpdate)).toLocaleString()}` : '## Telegram\nNot connected'}
-
-## Session
-- Status: Active
-- Last Updated: ${new Date(parseInt(userData.lastUpdate)).toLocaleString()}`;
-
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'system',
-            content,
-          },
-        ]);
-      } catch (error) {
-        console.error('Error fetching user info:', error);
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'system',
-            content: '❌ Failed to fetch user information',
-          },
-        ]);
-      }
+Data provided by DexScreener, CoinGecko & OpenWeather • Built with ❤️ using Next.js`,
+        },
+      ]);
       break;
     case 'dex':
       if (!prompt) {
