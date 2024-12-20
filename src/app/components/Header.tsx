@@ -62,17 +62,20 @@ const Header = () => {
 
     let popupClosed = false;
     let messageReceived = false;
+    let processingAuth = false;
 
     const handleMessage = async (event: MessageEvent) => {
       console.log('Received message:', event.origin, event.data);
       
       // Parse Telegram OAuth response
       if (
+        !processingAuth &&
         event.origin === 'https://oauth.telegram.org' && 
         event.data && 
         typeof event.data === 'object' && 
         event.data.event === 'auth_result'
       ) {
+        processingAuth = true;
         messageReceived = true;
         const { result } = event.data;
         
@@ -103,7 +106,7 @@ const Header = () => {
         } finally {
           setIsConnecting(false);
           window.removeEventListener('message', handleMessage);
-          if (!popupClosed && popup) {
+          if (popup && !popup.closed) {
             popup.close();
           }
         }
@@ -114,7 +117,7 @@ const Header = () => {
 
     // Cleanup if popup is closed manually
     const checkClosed = setInterval(() => {
-      if (popup.closed) {
+      if (popup.closed && !processingAuth) {
         popupClosed = true;
         clearInterval(checkClosed);
         window.removeEventListener('message', handleMessage);
@@ -124,11 +127,25 @@ const Header = () => {
           setIsConnecting(false);
         }
       }
-    }, 1000);
+    }, 500);
+
+    // Safety cleanup after 2 minutes
+    const safetyTimeout = setTimeout(() => {
+      if (!messageReceived && !popupClosed) {
+        clearInterval(checkClosed);
+        window.removeEventListener('message', handleMessage);
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+        showModal("Connection timed out. Please try again.", "error");
+        setIsConnecting(false);
+      }
+    }, 120000);
 
     // Cleanup on component unmount
     return () => {
       clearInterval(checkClosed);
+      clearTimeout(safetyTimeout);
       window.removeEventListener('message', handleMessage);
       if (!messageReceived) {
         setIsConnecting(false);
