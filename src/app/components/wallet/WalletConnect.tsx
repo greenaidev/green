@@ -1,8 +1,7 @@
 // WalletConnect.tsx
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { PublicKey } from "@solana/web3.js";
 import ConnectButton from "./ConnectButton";
 import AddressDisplay from "./AddressDisplay";
@@ -24,12 +23,35 @@ const WalletConnect = ({ onSessionChange, showModal }: {
   const MESSAGE_TO_SIGN = "Please sign this message to verify your identity.";
   const tokenTicker = process.env.NEXT_PUBLIC_TOKEN_TICKER || '';
 
-  const checkIfWalletIsConnected = async () => {
+  const fetchTokenBalance = useCallback(async (walletAddress: string) => {
+    try {
+      setTokenBalance(null);
+      
+      const response = await fetch(`/api/token/balance?wallet=${walletAddress}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        const balance = data.balance || 0;
+        setTokenBalance(balance);
+        onSessionChange(true, walletAddress, balance);
+
+        if (!data.hasEnough) {
+          showModal(`Insufficient token balance. Required: ${data.required.toLocaleString()}`, "error");
+        }
+      } else {
+        setTokenBalance(0);
+        onSessionChange(false, walletAddress, 0);
+      }
+    } catch {
+      setTokenBalance(0);
+      onSessionChange(false, walletAddress, 0);
+    }
+  }, [onSessionChange, showModal]);
+
+  const checkIfWalletIsConnected = useCallback(async () => {
     const solana = (window as unknown as { solana?: Solana }).solana;
     if (solana?.isPhantom) {
       try {
-        setTokenBalance(0);
-        
         const response = await solana.connect({ onlyIfTrusted: true });
         const publicKey = response.publicKey.toString();
 
@@ -52,30 +74,7 @@ const WalletConnect = ({ onSessionChange, showModal }: {
         showModal("Connect your wallet to login", "info");
       }
     }
-  };
-
-  const fetchTokenBalance = async (walletAddress: string) => {
-    try {
-      setTokenBalance(null);
-      
-      const response = await fetch(`/api/token/balance?wallet=${walletAddress}`);
-      const data = await response.json();
-      
-      if (response.ok) {
-        setTokenBalance(data.balance || 0);
-        
-        if (!data.hasEnough) {
-          showModal(`Insufficient token balance. Required: ${data.required.toLocaleString()}`, "error");
-        }
-      } else {
-        console.error('Error fetching balance:', data.error);
-        setTokenBalance(0);
-      }
-    } catch (error) {
-      console.error("Error fetching token balance:", error);
-      setTokenBalance(0);
-    }
-  };
+  }, [onSessionChange, showModal, tokenBalance, fetchTokenBalance]);
 
   const connectWallet = async () => {
     const solana = (window as unknown as { solana?: Solana }).solana;
@@ -116,7 +115,6 @@ const WalletConnect = ({ onSessionChange, showModal }: {
 
           setWalletAddress(publicKey);
           await fetchTokenBalance(publicKey);
-          onSessionChange(true, publicKey, tokenBalance);
           showModal("Wallet connected successfully", "success");
         } else {
           setWalletAddress(null);
@@ -131,13 +129,11 @@ const WalletConnect = ({ onSessionChange, showModal }: {
             setWalletAddress(null);
             onSessionChange(false, null, null);
             showModal("An unexpected error occurred", "error");
-            console.error(error);
           }
         } else {
           setWalletAddress(null);
           onSessionChange(false, null, null);
           showModal("An unexpected error occurred", "error");
-          console.error(error);
         }
       }
     }
@@ -155,16 +151,14 @@ const WalletConnect = ({ onSessionChange, showModal }: {
         onSessionChange(false, null, 0);
         showModal("Wallet disconnected", "success");
       }
-    } catch (error) {
-      console.error("Error during logout:", error);
+    } catch {
       showModal("Error disconnecting wallet", "error");
     }
   };
 
   useEffect(() => {
     checkIfWalletIsConnected();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [checkIfWalletIsConnected]);
 
   return (
     <div>

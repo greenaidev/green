@@ -18,31 +18,23 @@ export async function GET(request: NextRequest) {
     }
 
     if (isNaN(requiredAmount)) {
-      console.error('Invalid TOKEN_AMOUNT configuration');
       return NextResponse.json(
         { error: 'Server configuration error' },
         { status: 500 }
       );
     }
 
-    // Make RPC calls through our server
     const wallet = new PublicKey(walletAddress);
 
-    // Get token accounts
     const tokenAccounts = await makeRPCRequest('getTokenAccountsByOwner', [
       wallet.toBase58(),
       { programId: TOKEN_PROGRAM_ID.toBase58() },
       { encoding: 'jsonParsed', commitment: 'confirmed' }
     ], true);
 
-    console.log('Found token accounts:', tokenAccounts.result.value.length);
-
-    // Find matching account and get balance
     for (const account of tokenAccounts.result.value) {
       const parsedData = account.account.data.parsed;
       if (parsedData.info.mint === tokenAddress) {
-        console.log('Found matching token account:', account.pubkey);
-
         const balanceData = await makeRPCRequest('getTokenAccountBalance', [
           account.pubkey
         ], true);
@@ -50,14 +42,6 @@ export async function GET(request: NextRequest) {
         if (balanceData.result?.value) {
           const actualBalance = Number(balanceData.result.value.amount) / 
             Math.pow(10, balanceData.result.value.decimals);
-          
-          console.log('Token balance details:', {
-            raw: balanceData.result.value.amount,
-            decimals: balanceData.result.value.decimals,
-            calculated: actualBalance,
-            required: requiredAmount,
-            hasEnough: actualBalance >= requiredAmount
-          });
 
           return NextResponse.json({ 
             balance: actualBalance,
@@ -74,8 +58,7 @@ export async function GET(request: NextRequest) {
       required: requiredAmount
     });
 
-  } catch (error) {
-    console.error('Error checking token balance:', error);
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch token balance' },
       { status: 500 }
