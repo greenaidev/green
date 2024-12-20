@@ -14,6 +14,7 @@ const Header = () => {
   const [modalMessage, setModalMessage] = useState<string | null>(null);
   const [modalType, setModalType] = useState<"success" | "error" | "info">("info");
   const [isTelegramConnected, setIsTelegramConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleSessionChange = useCallback((valid: boolean, address: string | null) => {
     setIsSessionValid(valid);
@@ -26,6 +27,9 @@ const Header = () => {
   }, []);
 
   const handleTelegramLogin = useCallback(() => {
+    if (isConnecting) return;
+    setIsConnecting(true);
+
     const botId = process.env.NEXT_PUBLIC_BOT_ID;
     const origin = process.env.NEXT_PUBLIC_WEBAPP_URL;
     const width = 550;
@@ -43,11 +47,16 @@ const Header = () => {
 
     if (!popup) {
       showModal("Please allow popups to connect with Telegram", "error");
+      setIsConnecting(false);
       return;
     }
 
+    let popupClosed = false;
+    let messageReceived = false;
+
     const handleMessage = async (event: MessageEvent) => {
       if (event.origin === window.location.origin && event.data.telegram_data) {
+        messageReceived = true;
         try {
           const response = await fetch('/api/telegram/oauth', {
             method: 'POST',
@@ -70,7 +79,9 @@ const Header = () => {
         }
 
         window.removeEventListener('message', handleMessage);
-        popup.close();
+        if (!popupClosed && popup) {
+          popup.close();
+        }
       }
     };
 
@@ -78,21 +89,24 @@ const Header = () => {
 
     // Cleanup if popup is closed manually
     const checkClosed = setInterval(() => {
-      if (popup.closed) {
+      if (popup.closed && !messageReceived) {
+        popupClosed = true;
         clearInterval(checkClosed);
         window.removeEventListener('message', handleMessage);
-        if (!isTelegramConnected) {
+        if (!isTelegramConnected && !messageReceived) {
           showModal("Telegram connection was cancelled", "info");
         }
+        setIsConnecting(false);
       }
-    }, 500);
+    }, 1000);
 
     // Cleanup on component unmount
     return () => {
       clearInterval(checkClosed);
       window.removeEventListener('message', handleMessage);
+      setIsConnecting(false);
     };
-  }, [isTelegramConnected, showModal]);
+  }, [isTelegramConnected, showModal, isConnecting]);
 
   const shouldShowTopUp = connectedWallet && !isSessionValid;
 
@@ -114,8 +128,9 @@ const Header = () => {
                   className="telegram-button"
                   onClick={handleTelegramLogin}
                   type="button"
+                  disabled={isConnecting}
                 >
-                  Connect Telegram
+                  {isConnecting ? 'Connecting...' : 'Connect Telegram'}
                 </button>
               ) : (
                 <button 
