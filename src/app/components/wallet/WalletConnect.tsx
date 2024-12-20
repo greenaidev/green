@@ -1,7 +1,7 @@
 // WalletConnect.tsx
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { PublicKey } from "@solana/web3.js";
 import ConnectButton from "./ConnectButton";
 import AddressDisplay from "./AddressDisplay";
@@ -23,7 +23,7 @@ const WalletConnect = ({ onSessionChange, showModal }: {
   const MESSAGE_TO_SIGN = "Please sign this message to verify your identity.";
   const tokenTicker = process.env.NEXT_PUBLIC_TOKEN_TICKER || '';
 
-  const fetchTokenBalance = useCallback(async (walletAddress: string) => {
+  const fetchTokenBalance = async (walletAddress: string) => {
     try {
       setTokenBalance(null);
       
@@ -46,9 +46,9 @@ const WalletConnect = ({ onSessionChange, showModal }: {
       setTokenBalance(0);
       onSessionChange(false, walletAddress, 0);
     }
-  }, [onSessionChange, showModal]);
+  };
 
-  const checkIfWalletIsConnected = useCallback(async () => {
+  const checkIfWalletIsConnected = async () => {
     const solana = (window as unknown as { solana?: Solana }).solana;
     if (solana?.isPhantom) {
       try {
@@ -73,7 +73,7 @@ const WalletConnect = ({ onSessionChange, showModal }: {
         showModal("Connect your wallet to login", "info");
       }
     }
-  }, [onSessionChange, showModal, fetchTokenBalance]);
+  };
 
   const connectWallet = async () => {
     const solana = (window as unknown as { solana?: Solana }).solana;
@@ -155,9 +155,10 @@ const WalletConnect = ({ onSessionChange, showModal }: {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     checkIfWalletIsConnected();
-  }, [checkIfWalletIsConnected]);
+  }, []);
 
   return (
     <div>
