@@ -18,6 +18,9 @@ const Header = () => {
   const handleSessionChange = (valid: boolean, address: string | null) => {
     setIsSessionValid(valid);
     setConnectedWallet(address);
+    if (!valid) {
+      setTelegramConnected(false);
+    }
     console.log("Session change:", { valid, address });
   };
 
@@ -27,7 +30,6 @@ const Header = () => {
   };
 
   const shouldShowTopUp = connectedWallet && !isSessionValid;
-  const isFullyAuthenticated = isSessionValid && telegramConnected;
 
   return (
     <>
@@ -38,16 +40,16 @@ const Header = () => {
             onSessionChange={handleSessionChange} 
             showModal={showModal}
           />
-          {isSessionValid && (
+          {isSessionValid && !telegramConnected && (
             <TelegramConnect
               walletAddress={connectedWallet}
               onTelegramChange={setTelegramConnected}
               showModal={showModal}
             />
           )}
-          {isFullyAuthenticated && (
+          {telegramConnected && (
             <a 
-              href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT}`}
+              href="https://t.me/+2cUclHsHyv8yM2U5"
               className="telegram-group-button"
               target="_blank"
               rel="noopener noreferrer"
