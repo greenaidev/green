@@ -180,16 +180,10 @@ const Header = () => {
     let authProcessed = false;
 
     const handleMessage = async (event: MessageEvent) => {
-      // Only process messages from Telegram OAuth
-      if (event.origin !== 'https://oauth.telegram.org') {
-        console.log('⚠️ Ignoring message from unauthorized origin:', event.origin);
-        return;
-      }
-
+      console.log('📥 Received message:', JSON.stringify(event.data, null, 2));
+      
       try {
-        // Parse and validate the data
         const data = event.data;
-        console.log('📥 Received message:', JSON.stringify(data, null, 2));
         
         // Handle auth cancellation
         if (data.event === 'auth_cancelled') {
@@ -198,6 +192,7 @@ const Header = () => {
           return;
         }
 
+        // Validate data structure
         if (!data || typeof data !== 'object') {
           throw new Error('Invalid data format');
         }
@@ -211,12 +206,18 @@ const Header = () => {
           throw new Error('Invalid result format');
         }
 
-        // Validate required fields
-        const requiredFields = ['id', 'first_name', 'auth_date', 'hash'];
-        for (const field of requiredFields) {
-          if (!(field in telegramData)) {
-            throw new Error(`Missing required field: ${field}`);
-          }
+        // Validate required fields and types
+        if (typeof telegramData.id !== 'number') {
+          throw new Error('Invalid ID format');
+        }
+        if (typeof telegramData.first_name !== 'string') {
+          throw new Error('Invalid first_name format');
+        }
+        if (typeof telegramData.auth_date !== 'number') {
+          throw new Error('Invalid auth_date format');
+        }
+        if (typeof telegramData.hash !== 'string') {
+          throw new Error('Invalid hash format');
         }
 
         // Process the OAuth
@@ -225,7 +226,7 @@ const Header = () => {
         await handleTelegramOAuth({
           event: 'auth_result',
           result: telegramData,
-          origin: data.origin || window.location.origin
+          origin: data.origin
         });
       } catch (error) {
         console.error('❌ Error processing Telegram message:', error);
