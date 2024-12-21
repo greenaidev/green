@@ -71,9 +71,13 @@ const Header = () => {
   }, [connectedWallet]);
 
   const handleTelegramOAuth = useCallback(async (authData: TelegramAuthResult) => {
+    console.log('🔵 Starting Telegram OAuth process');
+    console.log('📥 Auth data received:', JSON.stringify(authData, null, 2));
+
     try {
       showModal("Verifying Telegram data...", "info", 2000);
 
+      console.log('🔄 Sending data to OAuth endpoint');
       const response = await fetch('/api/telegram/oauth', {
         method: 'POST',
         headers: {
@@ -86,25 +90,53 @@ const Header = () => {
       });
 
       const data = await response.json();
+      console.log('📋 OAuth response:', JSON.stringify(data, null, 2));
 
       if (response.ok) {
+        console.log('✅ OAuth successful');
         setIsTelegramConnected(true);
         setTelegramUser(authData.result);
         showModal("Telegram connected successfully!", "success", 3000);
         
-        // Log the final Redis data
-        const redisResponse = await fetch(`/api/redis/get?key=user:${connectedWallet}`);
-        const redisData = await redisResponse.json();
-        console.log('Final Redis Data:', redisData.data);
+        // Start verification process
+        console.log('🔄 Starting verification process');
+        try {
+          const verifyResponse = await fetch('/api/telegram/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              telegramId: authData.result.id,
+              walletAddress: connectedWallet,
+            }),
+          });
+
+          if (!verifyResponse.ok) {
+            throw new Error('Verification failed');
+          }
+
+          const verifyData = await verifyResponse.json();
+          console.log('📋 Verification response:', JSON.stringify(verifyData, null, 2));
+
+          if (verifyData.success) {
+            showModal("Verification complete! Check your Telegram messages.", "success", 5000);
+          } else {
+            showModal(verifyData.message || "Verification pending. Please check your Telegram.", "info", 5000);
+          }
+        } catch (verifyError) {
+          console.error('❌ Verification error:', verifyError);
+          showModal("Connected but verification needs to be completed in Telegram.", "info", 5000);
+        }
         
         return true;
       } else {
-        console.error('Telegram OAuth failed:', data);
+        console.error('❌ OAuth failed:', data);
         showModal(data.error || "Failed to connect Telegram", "error", 3000);
         return false;
       }
     } catch (error) {
-      console.error('Telegram auth error:', error);
+      console.error('❌ Telegram auth error:', error);
       showModal("Connection error. Please try again.", "error", 3000);
       return false;
     } finally {
@@ -118,6 +150,13 @@ const Header = () => {
 
     const botId = process.env.NEXT_PUBLIC_BOT_ID;
     const origin = process.env.NEXT_PUBLIC_WEBAPP_URL;
+    
+    if (!botId || !origin) {
+      showModal("Configuration error. Please try again later.", "error", 3000);
+      setIsConnecting(false);
+      return;
+    }
+
     const width = 550;
     const height = 470;
     const left = (window.innerWidth - width) / 2;
@@ -125,8 +164,9 @@ const Header = () => {
 
     showModal("Opening Telegram login...", "info", 2000);
 
+    const callbackUrl = `${origin}/api/telegram/oauth/callback`;
     const popup = window.open(
-      `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${origin}&request_access=write`,
+      `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${origin}&return_to=${encodeURIComponent(callbackUrl)}`,
       "TelegramAuth",
       `width=${width},height=${height},left=${left},top=${top}`
     );
@@ -142,42 +182,54 @@ const Header = () => {
     const handleMessage = async (event: MessageEvent) => {
       // Only process messages from Telegram OAuth
       if (event.origin !== 'https://oauth.telegram.org') {
+        console.log('⚠️ Ignoring message from unauthorized origin:', event.origin);
         return;
       }
 
       try {
         // Parse and validate the data
         const data = event.data;
-        console.log('Received Telegram OAuth data:', data);
+        console.log('📥 Received message:', JSON.stringify(data, null, 2));
         
-        if (!data || typeof data !== 'object') {
-          console.error('Invalid data format:', data);
+        // Handle auth cancellation
+        if (data.event === 'auth_cancelled') {
+          console.log('ℹ️ Authentication cancelled by user');
+          showModal("Telegram connection cancelled", "info", 3000);
           return;
         }
 
+        if (!data || typeof data !== 'object') {
+          throw new Error('Invalid data format');
+        }
+
         if (data.event !== 'auth_result') {
-          console.error('Invalid event type:', data.event);
-          return;
+          throw new Error('Invalid event type');
         }
 
         const telegramData = data.result;
         if (!telegramData || typeof telegramData !== 'object') {
-          console.error('Invalid result format:', telegramData);
-          return;
+          throw new Error('Invalid result format');
+        }
+
+        // Validate required fields
+        const requiredFields = ['id', 'first_name', 'auth_date', 'hash'];
+        for (const field of requiredFields) {
+          if (!(field in telegramData)) {
+            throw new Error(`Missing required field: ${field}`);
+          }
         }
 
         // Process the OAuth
-        console.log('Processing Telegram OAuth data');
+        console.log('🔄 Processing OAuth with validated data');
         authProcessed = true;
-
         await handleTelegramOAuth({
           event: 'auth_result',
           result: telegramData,
           origin: data.origin || window.location.origin
         });
       } catch (error) {
-        console.error('Error processing Telegram message:', error);
-        showModal("Failed to process Telegram login", "error", 3000);
+        console.error('❌ Error processing Telegram message:', error);
+        showModal(error instanceof Error ? error.message : "Failed to process Telegram login", "error", 3000);
       } finally {
         window.removeEventListener('message', handleMessage);
         if (popup && !popup.closed) popup.close();
